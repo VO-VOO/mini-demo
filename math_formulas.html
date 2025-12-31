@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Formulas Animation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #FFFFFF;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .formula {
+            position: absolute;
+            color: #333333;
+            /* Deep Gray */
+            opacity: 0;
+            user-select: none;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: scale(1.1) translateY(-10px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <script>
+        const formulas = [
+            // Trigonometry
+            "\\sin^2(x) + \\cos^2(x) = 1",
+            "\\tan(x) = \\frac{\\sin(x)}{\\cos(x)}",
+            "e^{i\\pi} + 1 = 0",
+
+            // Physics
+            "E = mc^2",
+            "F = ma",
+            "F = G\\frac{m_1m_2}{r^2}",
+            "\\Delta x \\cdot \\Delta p \\geq \\frac{\\hbar}{2}",
+            "E = h\\nu",
+
+            // Calculus
+            "\\int_a^b f(x)dx",
+            "\\frac{d}{dx}(x^n) = nx^{n-1}",
+            "\\lim_{x \\to \\infty} \\frac{1}{x} = 0",
+            "\\sum_{n=1}^{\\infty} \\frac{1}{n^2} = \\frac{\\pi^2}{6}",
+
+            // Probability
+            "P(A \\cap B) = P(A) \\cdot P(B|A)",
+            "E(X) = \\sum_{i=1}^{n} x_i \\cdot p_i",
+            "\\sigma^2 = E[(X-\\mu)^2]",
+            "f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}}e^{-\\frac{(x-\\mu)^2}{2\\sigma^2}}"
+        ];
+
+        const config = {
+            minConcurrent: 6,
+            maxConcurrent: 10,
+            fadeInDuration: 800, // ms
+            fadeOutDuration: 800, // ms
+            stayDurationMin: 1500, // ms
+            stayDurationMax: 2000,
+            cycleLife: 3000, // Roughly 3-4s total life but controlled by animation steps
+            respawnDelayMin: 500,
+            respawnDelayMax: 2000,
+            fontSizeMin: 18,
+            fontSizeMax: 32
+        };
+
+        let activeCount = 0;
+
+        function randomRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        function createFormula() {
+            if (activeCount >= config.maxConcurrent) return;
+
+            const formulaStr = formulas[Math.floor(Math.random() * formulas.length)];
+            const el = document.createElement('div');
+            el.className = 'formula';
+
+            // Render KaTeX
+            try {
+                katex.render(formulaStr, el, {
+                    throwOnError: false,
+                    displayMode: true
+                });
+            } catch (e) {
+                console.error("KaTeX error:", e);
+                return;
+            }
+
+            // Random Styling
+            const fontSize = randomRange(config.fontSizeMin, config.fontSizeMax);
+            const top = randomRange(10, 90);
+            const left = randomRange(10, 90);
+
+            el.style.fontSize = `${fontSize}px`;
+            el.style.top = `${top}%`;
+            el.style.left = `${left}%`;
+
+            // Center the element on its random point
+            el.style.transform = 'translate(-50%, -50%)';
+
+            document.body.appendChild(el);
+            activeCount++;
+
+            // Lifecycle: Fade In -> Stay -> Fade Out -> Remove
+
+            // 1. Fade In
+            // Use Web Animations API for better control or just class switching
+            // Let's use simple FLIP or standard CSS transitions/animations
+
+            el.style.animation = `fadeIn ${config.fadeInDuration}ms ease-out forwards`;
+
+            const stayTime = randomRange(config.stayDurationMin, config.stayDurationMax);
+
+            setTimeout(() => {
+                // 2. Fade Out
+                el.style.animation = `fadeOut ${config.fadeOutDuration}ms ease-in forwards`;
+
+                setTimeout(() => {
+                    // 3. Remove
+                    if (el.parentNode) {
+                        el.parentNode.removeChild(el);
+                        activeCount--;
+
+                        // Schedule next spawn
+                        const delay = randomRange(config.respawnDelayMin, config.respawnDelayMax);
+                        setTimeout(createFormula, delay);
+                    }
+                }, config.fadeOutDuration);
+
+            }, config.fadeInDuration + stayTime);
+        }
+
+        function init() {
+            // Initial population
+            const initialCount = Math.floor(randomRange(config.minConcurrent, config.maxConcurrent));
+            for (let i = 0; i < initialCount; i++) {
+                // Stagger start times
+                setTimeout(createFormula, randomRange(0, 2000));
+            }
+
+            // Watcher to ensure we don't drop below min due to random fluctuations
+            setInterval(() => {
+                if (activeCount < config.minConcurrent) {
+                    createFormula();
+                }
+            }, 1000);
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stick Figure Animation</title>
+    <style>
+        :root {
+            --bg-color: #D4C5B0;
+            --line-color: #6B5744;
+            --line-width: 2px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            overflow: hidden;
+            /* Prevent scrollbars */
+            width: 100vw;
+            height: 100vh;
+            color: var(--line-color);
+            font-family: sans-serif;
+            position: relative;
+        }
+
+        /* SVG Common Styles */
+        svg {
+            position: absolute;
+            fill: none;
+            stroke: var(--line-color);
+            stroke-width: var(--line-width);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            overflow: visible;
+        }
+
+        .text-label {
+            fill: var(--line-color);
+            stroke: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .wave-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100px;
+            z-index: 1;
+            animation: waveMove 25s linear infinite;
+        }
+
+        .wave-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+        }
+
+        /* Clouds - Mid Layer */
+        .cloud {
+            z-index: 2;
+            opacity: 0.9;
+        }
+
+        .cloud-1 {
+            top: 10%;
+            left: 0;
+            width: 120px;
+            height: 60px;
+            animation: floatLeft 50s linear infinite;
+        }
+
+        .cloud-2 {
+            top: 25%;
+            left: 0;
+            width: 100px;
+            height: 50px;
+            animation: floatLeft 64s linear infinite;
+            animation-delay: -10s;
+        }
+
+        .cloud-3 {
+            top: 15%;
+            left: 0;
+            width: 140px;
+            height: 70px;
+            animation: floatLeft 56s linear infinite;
+            animation-delay: -5s;
+        }
+
+        .cloud-4 {
+            top: 8%;
+            left: 0;
+            width: 90px;
+            height: 45px;
+            animation: floatLeft 70s linear infinite;
+            animation-delay: -20s;
+        }
+
+        .cloud-5 {
+            top: 30%;
+            left: 0;
+            width: 110px;
+            height: 55px;
+            animation: floatLeft 60s linear infinite;
+            animation-delay: -35s;
+        }
+
+        .cloud-6 {
+            top: 20%;
+            left: 0;
+            width: 130px;
+            height: 65px;
+            animation: floatLeft 55s linear infinite;
+            animation-delay: -45s;
+        }
+
+        /* Rockets - Foreground Layer */
+        .rocket-container {
+            position: absolute;
+            z-index: 3;
+            animation: flyAcross 8s linear infinite;
+        }
+
+        .rocket-wrapper {
+            position: relative;
+            /* Add gentle bobbing */
+            animation: bob 2s ease-in-out infinite;
+        }
+
+        .rocket-svg {
+            width: 100px;
+            height: 50px;
+            /* Rocket drawn pointing left now, no rotation needed */
+        }
+
+        /* Rocket variants */
+        .rocket-1 {
+            top: H_RANDOM;
+            /* Placeholder for variety, handled in specific styles below */
+            animation-duration: 7s;
+        }
+
+        .rocket-2 {
+            top: H_RANDOM;
+            animation-duration: 9s;
+            animation-delay: -4s;
+        }
+
+        /* Specific positioning */
+        #r1 {
+            top: 40%;
+        }
+
+        #r2 {
+            top: 60%;
+        }
+
+        /* Exhaust Animation - Adapted from reference */
+        .flame-line {
+            stroke-dasharray: 10;
+            animation: flicker 0.1s infinite alternate;
+        }
+
+        .f1 {
+            animation-delay: 0.0s;
+        }
+
+        .f2 {
+            animation-delay: 0.05s;
+        }
+
+        .f3 {
+            animation-delay: 0.02s;
+        }
+
+
+        /* UFO */
+        .ufo-container {
+            position: absolute;
+            top: 8%;
+            z-index: 4;
+            animation: ufoFly 15s ease-in-out infinite;
+        }
+
+        .ufo-svg {
+            width: 80px;
+            height: 40px;
+        }
+
+        /* Keyframes */
+        @keyframes floatLeft {
+            0% {
+                transform: translateX(100vw);
+            }
+
+            100% {
+                transform: translateX(-200px);
+            }
+        }
+
+        @keyframes waveMove {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        @keyframes flyAcross {
+            0% {
+                left: 100vw;
+            }
+
+            100% {
+                left: -200px;
+            }
+        }
+
+        @keyframes bob {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes flicker {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0.5;
+                transform: translateX(2px);
+            }
+        }
+
+        @keyframes ufoFly {
+            0% {
+                left: 100vw;
+                opacity: 0;
+            }
+
+            5% {
+                opacity: 1;
+            }
+
+            /* 慢速移动到画面 2/3 位置 (从右边算起的 1/3) */
+            60% {
+                left: 66%;
+                opacity: 1;
+            }
+
+            /* 突然加速冲向左侧 */
+            75% {
+                left: -150px;
+                opacity: 1;
+            }
+
+            76% {
+                opacity: 0;
+            }
+
+            100% {
+                left: -150px;
+                opacity: 0;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .cloud {
+                transform: scale(0.7);
+            }
+
+            .rocket-container {
+                transform: scale(0.7);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Wave Lines -->
+    <div class="wave-container">
+        <svg class="wave-line" preserveAspectRatio="none" viewBox="0 0 2400 100">
+            <!-- Smooth sine-like waves with different phases -->
+            <path d="M0,50 C100,20 200,20 300,50 C400,80 500,80 600,50 C700,20 800,20 900,50 C1000,80 1100,80 1200,50 C1300,20 1400,20 1500,50 C1600,80 1700,80 1800,50 C1900,20 2000,20 2100,50 C2200,80 2300,80 2400,50" />
+            <path d="M0,65 C80,40 180,40 280,65 C380,90 480,90 580,65 C680,40 780,40 880,65 C980,90 1080,90 1180,65 C1280,40 1380,40 1480,65 C1580,90 1680,90 1780,65 C1880,40 1980,40 2080,65 C2180,90 2280,90 2400,65" />
+            <path d="M0,80 C120,55 220,55 340,80 C460,105 560,105 680,80 C800,55 900,55 1020,80 C1140,105 1240,105 1360,80 C1480,55 1580,55 1700,80 C1820,105 1920,105 2040,80 C2160,55 2260,55 2400,80" />
+        </svg>
+    </div>
+
+    <!-- UFO -->
+    <div class="ufo-container">
+        <svg class="ufo-svg" viewBox="0 0 80 40">
+            <!-- 飞碟顶部圆顶 -->
+            <ellipse cx="40" cy="18" rx="12" ry="10" />
+            <!-- 飞碟主体 -->
+            <ellipse cx="40" cy="24" rx="35" ry="8" />
+            <!-- 底部灯光 -->
+            <circle cx="25" cy="28" r="3" />
+            <circle cx="40" cy="30" r="3" />
+            <circle cx="55" cy="28" r="3" />
+        </svg>
+    </div>
+        </svg>
+    </div>
+
+    <!-- Clouds -->
+    <svg class="cloud cloud-1" viewBox="0 0 100 50">
+        <!-- Cloud shape -->
+        <path d="M10,40 Q0,40 0,30 Q0,10 20,10 Q25,0 40,0 Q60,0 65,10 Q85,5 95,20 Q100,25 100,35 Q100,40 90,40 Z" />
+    </svg>
+
+    <svg class="cloud cloud-2" viewBox="0 0 100 50">
+        <path d="M10,40 Q0,40 0,30 Q0,10 20,10 Q25,0 40,0 Q60,0 65,10 Q85,5 95,20 Q100,25 100,35 Q100,40 90,40 Z"
+            transform="scale(-1,1) translate(-100,0)" />
+    </svg>
+
+    <svg class="cloud cloud-3" viewBox="0 0 100 50">
+        <path d="M15,45 Q5,45 5,35 Q5,15 25,15 Q30,5 45,5 Q65,5 70,15 Q90,10 100,25 Q105,30 105,40 Q105,45 95,45 Z" />
+    </svg>
+
+    <svg class="cloud cloud-4" viewBox="0 0 100 50">
+        <path d="M10,40 Q0,40 0,30 Q0,10 20,10 Q25,0 40,0 Q60,0 65,10 Q85,5 95,20 Q100,25 100,35 Q100,40 90,40 Z" />
+    </svg>
+
+    <svg class="cloud cloud-5" viewBox="0 0 100 50">
+        <path d="M15,45 Q5,45 5,35 Q5,15 25,15 Q30,5 45,5 Q65,5 70,15 Q90,10 100,25 Q105,30 105,40 Q105,45 95,45 Z"
+            transform="scale(-1,1) translate(-100,0)" />
+    </svg>
+
+    <svg class="cloud cloud-6" viewBox="0 0 100 50">
+        <path d="M10,40 Q0,40 0,30 Q0,10 20,10 Q25,0 40,0 Q60,0 65,10 Q85,5 95,20 Q100,25 100,35 Q100,40 90,40 Z" />
+    </svg>
+
+    <!-- Rocket 1 (TOKO) -->
+    <div class="rocket-container rocket-1" id="r1">
+        <div class="rocket-wrapper">
+            <svg class="rocket-svg" viewBox="0 0 100 60">
+                <!-- Exhaust (Right side) -->
+                <g class="exhaust" transform="translate(120, 7)">
+                    <line x1="0" y1="5" x2="20" y2="5" class="flame-line f1" />
+                    <line x1="0" y1="15" x2="30" y2="15" class="flame-line f2" />
+                    <line x1="0" y1="25" x2="15" y2="25" class="flame-line f3" />
+                </g>
+                <!-- Body: Main Rect (Center) -->
+                <rect x="30" y="10" width="60" height="20" rx="2" />
+                <!-- Nose: Triangle (Left) -->
+                <path d="M30,10 L0,20 L30,30 Z" />
+                <!-- Fin: Top (Right) -->
+                <path d="M80,10 L100,0 L90,10 Z" />
+                <!-- Fin: Bottom (Right) -->
+                <path d="M80,30 L100,40 L90,30 Z" />
+                <!-- Text -->
+                <text x="45" y="25" class="text-label">toko</text>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Rocket 2 (YAMI) -->
+    <div class="rocket-container rocket-2" id="r2">
+        <div class="rocket-wrapper">
+            <svg class="rocket-svg" viewBox="0 0 100 60">
+                <!-- Exhaust -->
+                <g class="exhaust" transform="translate(120, 7)">
+                    <line x1="0" y1="5" x2="20" y2="5" class="flame-line f1" />
+                    <line x1="0" y1="15" x2="30" y2="15" class="flame-line f2" />
+                    <line x1="0" y1="25" x2="15" y2="25" class="flame-line f3" />
+                </g>
+                <!-- Body -->
+                <rect x="30" y="10" width="60" height="20" rx="2" />
+                <!-- Nose -->
+                <path d="M30,10 L0,20 L30,30 Z" />
+                <!-- Fins -->
+                <path d="M80,10 L100,0 L90,10 Z" />
+                <path d="M80,30 L100,40 L90,30 Z" />
+                <!-- Text -->
+                <text x="45" y="25" class="text-label">yami</text>
+            </svg>
+        </div>
+    </div>
+
+</body>
+
+</html>

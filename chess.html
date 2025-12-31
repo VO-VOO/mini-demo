@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D 巫师棋 (Wizard's Chess)</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background-color: #05080a;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: #ddd;
+        user-select: none;
+      }
+      #game-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #ui-layer {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        pointer-events: none;
+        z-index: 10;
+        display: flex;
+        justify-content: space-between;
+      }
+      .info-panel {
+        pointer-events: auto;
+      }
+      h1 {
+        margin: 0;
+        color: #e0e0e0;
+        text-shadow: 0 0 15px #00ccff;
+        font-size: 28px;
+        font-weight: bold;
+        letter-spacing: 2px;
+      }
+      #status {
+        margin-top: 10px;
+        font-size: 20px;
+        color: #ffddaa;
+        text-shadow: 0 0 10px #ffaa00;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 5px 15px;
+        border-radius: 5px;
+        display: inline-block;
+        font-weight: bold;
+        border: 1px solid #666;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      }
+      #music-btn,
+      #undo-btn {
+        pointer-events: auto;
+        background: rgba(0, 0, 0, 0.7);
+        border: 1px solid #00ccff;
+        color: #00ccff;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 0 15px rgba(0, 204, 255, 0.3);
+        text-shadow: 0 0 5px #00ccff;
+      }
+      #music-btn:hover,
+      #undo-btn:hover {
+        background: rgba(0, 204, 255, 0.3);
+        transform: scale(1.1);
+        box-shadow: 0 0 25px rgba(0, 204, 255, 0.6);
+      }
+      #undo-btn.disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+      #controls-hint {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        font-size: 14px;
+        color: #8899aa;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #333;
+        pointer-events: none;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(10, 15, 20, 0.95);
+        border: 2px solid #445566;
+        padding: 30px;
+        text-align: center;
+        z-index: 100;
+        box-shadow: 0 0 50px rgba(0, 150, 255, 0.4);
+        border-radius: 10px;
+        color: white;
+      }
+      #start-overlay {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 200;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
+      .start-btn-style {
+        background: #1a2b3c;
+        color: #00eeff;
+        border: 1px solid #00aabb;
+        padding: 14px 28px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 20px;
+        border-radius: 5px;
+        transition: all 0.3s;
+        box-shadow: 0 0 20px rgba(0, 200, 255, 0.2);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .start-btn-style:hover {
+        background: #2c4e6b;
+        box-shadow: 0 0 30px rgba(0, 200, 255, 0.6);
+        transform: translateY(-2px);
+        color: #fff;
+      }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  </head>
+  <body>
+    <div id="ui-layer">
+      <div class="info-panel">
+        <h1>巫师棋 (Wizard's Chess)</h1>
+        <div id="status">轮到：白方</div>
+      </div>
+      <div style="display: flex; gap: 10px; pointer-events: auto">
+        <div id="undo-btn" title="悔棋" style="display: none">↶</div>
+        <div id="music-btn" title="切换音乐">🎵</div>
+      </div>
+    </div>
+
+    <div id="controls-hint">
+      左键：选择/移动 | 右键按住：旋转视角 | 滚轮：缩放
+    </div>
+
+    <!-- 棋盘坐标标签 -->
+    <div
+      id="board-labels"
+      style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        font-family: monospace;
+        color: #666;
+        font-size: 12px;
+        font-weight: bold;
+      "
+    ></div>
+
+    <div id="start-overlay">
+      <div
+        style="
+          background: #0a0e14;
+          padding: 50px;
+          border-radius: 15px;
+          text-align: center;
+          border: 1px solid #334455;
+          box-shadow: 0 0 80px rgba(0, 100, 255, 0.15);
+        "
+      >
+        <h2
+          style="margin-top: 0; color: #00ccff; text-shadow: 0 0 10px #0066aa"
+        >
+          霍格沃茨大厅
+        </h2>
+        <p style="color: #8899aa; margin-bottom: 30px">
+          点击下方按钮开启魔法棋局
+        </p>
+        <button id="start-btn" type="button" class="start-btn-style">
+          开始游戏 (播放音乐)
+        </button>
+      </div>
+    </div>
+
+    <div id="game-over-modal" class="modal">
+      <h2
+        id="winner-text"
+        style="color: #ffaa00; text-shadow: 0 0 10px #ff4400"
+      >
+        白方获胜!
+      </h2>
+      <button onclick="location.reload()" type="button" class="start-btn-style">
+        重新开始
+      </button>
+    </div>
+
+    <div id="game-container"></div>
+
+    <script>
+      // --- 声音合成管理器 (Web Audio API) ---
+      const SoundManager = {
+        ctx: null,
+        isInit: false,
+        masterGain: null,
+        isPlaying: true,
+        melodyInterval: null, // 保存音乐循环的 interval 引用
+        init: function () {
+          if (this.isInit) return;
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+          this.masterGain = this.ctx.createGain();
+          this.masterGain.gain.value = 0.5;
+          this.masterGain.connect(this.ctx.destination);
+
+          this.startAmbience();
+          this.startHedwigTheme();
+          this.isInit = true;
+          this.updateIcon();
+        },
+
+        cleanup: function () {
+          // 清理音乐循环
+          if (this.melodyInterval) {
+            clearInterval(this.melodyInterval);
+            this.melodyInterval = null;
+          }
+          // 断开所有音频节点
+          this.activeNodes.forEach((node) => {
+            try {
+              node.disconnect();
+            } catch (e) {
+              // 忽略已经断开的节点
+            }
+          });
+          this.activeNodes = [];
+          // 关闭音频上下文
+          if (this.ctx) {
+            this.ctx.close();
+            this.ctx = null;
+          }
+          this.isInit = false;
+        },
+
+        toggle: function () {
+          if (!this.isInit) return;
+          if (this.ctx.state === "running") {
+            this.ctx.suspend();
+            this.isPlaying = false;
+          } else if (this.ctx.state === "suspended") {
+            this.ctx.resume();
+            this.isPlaying = true;
+          }
+          this.updateIcon();
+        },
+
+        updateIcon: function () {
+          const btn = document.getElementById("music-btn");
+          if (this.isPlaying) {
+            btn.innerText = "🎵";
+            btn.style.color = "#00ccff";
+            btn.style.borderColor = "#00ccff";
+            btn.style.boxShadow = "0 0 15px rgba(0, 204, 255, 0.3)";
+          } else {
+            btn.innerText = "🔇";
+            btn.style.color = "#555";
+            btn.style.borderColor = "#555";
+            btn.style.boxShadow = "none";
+          }
+        },
+
+        startAmbience: function () {
+          if (!this.ctx) return;
+          const bufferSize = 4096;
+          const noiseBuffer = this.ctx.createBuffer(
+            1,
+            bufferSize,
+            this.ctx.sampleRate
+          );
+          const data = noiseBuffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+          const noiseSource = this.ctx.createBufferSource();
+          noiseSource.buffer = noiseBuffer;
+          noiseSource.loop = true;
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = "lowpass";
+          filter.frequency.value = 120;
+          const gain = this.ctx.createGain();
+          gain.gain.value = 0.1;
+          noiseSource.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.masterGain);
+          noiseSource.start();
+        },
+
+        startHedwigTheme: function () {
+          if (!this.ctx) return;
+          const N = {
+            B4: 493.88,
+            D5: 587.33,
+            Ds5: 622.25,
+            E5: 659.25,
+            F5: 698.46,
+            Fs5: 739.99,
+            G5: 783.99,
+            A5: 880.0,
+            B5: 987.77,
+            C6: 1046.5,
+          };
+          const beat = 0.45;
+          const melodySequence = [
+            { f: N.B4, d: beat * 0.5 },
+            { f: N.E5, d: beat * 1.5 },
+            { f: N.G5, d: beat * 0.5 },
+            { f: N.Fs5, d: beat },
+            { f: N.E5, d: beat * 2 },
+            { f: N.B5, d: beat },
+            { f: N.A5, d: beat * 3 },
+            { f: N.Fs5, d: beat * 3 },
+            { f: N.E5, d: beat * 1.5 },
+            { f: N.G5, d: beat * 0.5 },
+            { f: N.Fs5, d: beat },
+            { f: N.Ds5, d: beat * 2 },
+            { f: N.F5, d: beat },
+            { f: N.B4, d: beat * 3 },
+          ];
+          let loopDuration = 0;
+          melodySequence.forEach((note) => (loopDuration += note.d));
+          loopDuration += 1.5;
+          const playMelody = () => {
+            if (this.ctx.state !== "running") return;
+            let now = this.ctx.currentTime + 0.1;
+            melodySequence.forEach((note) => {
+              this.playCelestaNote(note.f, now, note.d);
+              now += note.d;
+            });
+          };
+          playMelody();
+          // 保存 interval 引用以便后续清理
+          this.melodyInterval = setInterval(playMelody, loopDuration * 1000);
+        },
+
+        playCelestaNote: function (freq, startTime, duration) {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0, startTime);
+          gain.gain.linearRampToValueAtTime(0.3, startTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            startTime + duration + 1.5
+          );
+          const lfo = this.ctx.createOscillator();
+          lfo.frequency.value = 5;
+          const lfoGain = this.ctx.createGain();
+          lfoGain.gain.value = 2;
+          lfo.connect(lfoGain);
+          lfoGain.connect(osc.frequency);
+          lfo.start(startTime);
+          lfo.stop(startTime + duration + 2.0);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(startTime);
+          osc.stop(startTime + duration + 2.0);
+        },
+
+        playMoveSound: function () {
+          if (!this.ctx) return;
+          const t = this.ctx.currentTime;
+          const bufferSize = this.ctx.sampleRate * 0.8;
+          const buffer = this.ctx.createBuffer(
+            1,
+            bufferSize,
+            this.ctx.sampleRate
+          );
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = "lowpass";
+          filter.frequency.setValueAtTime(150, t);
+          filter.frequency.linearRampToValueAtTime(50, t + 0.8);
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(0.8, t + 0.1);
+          gain.gain.linearRampToValueAtTime(0, t + 0.8);
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.masterGain);
+          noise.start(t);
+        },
+
+        playDestroySound: function () {
+          if (!this.ctx) return;
+          const t = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          osc.type = "square";
+          osc.frequency.setValueAtTime(50, t);
+          osc.frequency.exponentialRampToValueAtTime(10, t + 0.2);
+          const oscGain = this.ctx.createGain();
+          oscGain.gain.setValueAtTime(0.5, t);
+          oscGain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+          osc.connect(oscGain);
+          oscGain.connect(this.masterGain);
+          osc.start(t);
+          osc.stop(t + 0.2);
+          const bufferSize = this.ctx.sampleRate * 0.6;
+          const buffer = this.ctx.createBuffer(
+            1,
+            bufferSize,
+            this.ctx.sampleRate
+          );
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+          }
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = "highpass";
+          filter.frequency.value = 500;
+          const nGain = this.ctx.createGain();
+          nGain.gain.setValueAtTime(0.4, t);
+          nGain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+          noise.connect(filter);
+          filter.connect(nGain);
+          nGain.connect(this.masterGain);
+          noise.start(t);
+        },
+      };
+
+      // --- 游戏配置与状态 ---
+      const CONFIG = {
+        boardSize: 8,
+        tileSize: 10,
+        colors: {
+          // 1. 棋子本身颜色 (极高对比度)
+          whitePiece: 0xffffff, // 纯白色，最大可见度
+          blackPiece: 0x0a0a0a, // 深黑色，但不是纯黑
+
+          // 2. 增强的自发光
+          whiteEmissive: 0xffffdd, // 明亮暖白光
+          blackEmissive: 0x3366ff, // 明亮蓝光
+
+          // 3. 棋盘颜色 (高对比度)
+          whiteTile: 0xf5f5f5, // 几乎纯白的浅色格
+          blackTile: 0x6688aa, // 明亮的蓝灰色
+
+          highlight: 0x00ff00,
+          selected: 0xffaa00,
+          validMove: 0x00ddff,
+        },
+        animSpeed: 0.2,
+      };
+
+      let gameState = {
+        board: [],
+        turn: "white",
+        selectedPiece: null,
+        validMoves: [],
+        isAnimating: false,
+        gameOver: false,
+        lastMove: null, // 记录上一步移动，用于吃过路兵
+        moveHistory: [], // 移动历史
+        highlightedTiles: [], // 高亮显示的格子（上一步移动）
+      };
+
+      // --- Three.js 全局变量 ---
+      let scene, camera, renderer;
+      let raycaster, mouse;
+      let tiles = [];
+      let piecesMeshes = [];
+      let particles = [];
+
+      let isDragging = false;
+      let previousMousePosition = { x: 0, y: 0 };
+      let cameraAngle = Math.PI / 4;
+      let cameraZoom = 100;
+
+      // 粒子系统优化 - 共享几何体和材质
+      let sharedParticleGeometry = null;
+      const particleMaterialCache = {}; // 缓存不同颜色的材质
+
+      function init() {
+        // 检查 WebGL 支持
+        if (!window.WebGLRenderingContext) {
+          alert(
+            "您的浏览器不支持 WebGL，无法运行此游戏。请使用现代浏览器（Chrome、Firefox、Edge等）。"
+          );
+          return;
+        }
+
+        try {
+          document.getElementById("start-btn").addEventListener("click", () => {
+            document.getElementById("start-overlay").style.display = "none";
+            SoundManager.init();
+          });
+          document.getElementById("music-btn").addEventListener("click", () => {
+            SoundManager.toggle();
+          });
+          document.getElementById("undo-btn").addEventListener("click", () => {
+            undoMove();
+          });
+
+          // 1. 场景
+          scene = new THREE.Scene();
+          const bgColor = 0x0b1015;
+          scene.background = new THREE.Color(bgColor);
+          scene.fog = new THREE.FogExp2(bgColor, 0.012);
+
+          // 2. 摄像机
+          camera = new THREE.PerspectiveCamera(
+            45,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+          );
+          updateCameraPosition();
+
+          // 3. 渲染器
+          renderer = new THREE.WebGLRenderer({ antialias: true });
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.shadowMap.enabled = true;
+          renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          // 提高曝光度以获得更明亮的场景
+          renderer.toneMappingExposure = 1.6;
+          document
+            .getElementById("game-container")
+            .appendChild(renderer.domElement);
+
+          // 4. 灯光系统 - 全面改进
+          // 环境光 - 提高基础亮度
+          const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+          scene.add(ambientLight);
+
+          // 半球光 - 顶部天光（增强）
+          const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
+          hemiLight.position.set(0, 100, 0);
+          scene.add(hemiLight);
+
+          // 顶部主灯 - 增强主光源
+          const topLight = new THREE.PointLight(0xffffff, 1.2, 350);
+          topLight.position.set(0, 80, 0);
+          topLight.castShadow = true;
+          topLight.shadow.mapSize.width = 2048;
+          topLight.shadow.mapSize.height = 2048;
+          topLight.shadow.radius = 4;
+          scene.add(topLight);
+
+          // --- 四角补光系统（增强） ---
+          const cornerDist = 60;
+          const cornerHeight = 50;
+          const cornerIntensity = 1.0; // 提高补光强度
+          const lightDistance = 250; // 扩大照射范围
+
+          // 右下角 (暖色调)
+          const lightRB = new THREE.PointLight(
+            0xffffee,
+            cornerIntensity,
+            lightDistance
+          );
+          lightRB.position.set(cornerDist, cornerHeight, cornerDist);
+          scene.add(lightRB);
+
+          // 左下角 (冷色调)
+          const lightLB = new THREE.PointLight(
+            0xeef5ff,
+            cornerIntensity,
+            lightDistance
+          );
+          lightLB.position.set(-cornerDist, cornerHeight, cornerDist);
+          scene.add(lightLB);
+
+          // 左上角
+          const lightLT = new THREE.PointLight(
+            0xeef5ff,
+            cornerIntensity,
+            lightDistance
+          );
+          lightLT.position.set(-cornerDist, cornerHeight, -cornerDist);
+          scene.add(lightLT);
+
+          // 右上角
+          const lightRT = new THREE.PointLight(
+            0xffffee,
+            cornerIntensity,
+            lightDistance
+          );
+          lightRT.position.set(cornerDist, cornerHeight, -cornerDist);
+          scene.add(lightRT);
+
+          // --- 屏幕外柔和光源（新增） ---
+          // 前方柔光（面向玩家）
+          const frontLight = new THREE.DirectionalLight(0xffffff, 0.4);
+          frontLight.position.set(0, 40, 100); // 屏幕外前方
+          scene.add(frontLight);
+
+          // 后方柔光
+          const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+          backLight.position.set(0, 40, -100); // 屏幕外后方
+          scene.add(backLight);
+
+          // 左侧柔光
+          const leftLight = new THREE.DirectionalLight(0xffffff, 0.3);
+          leftLight.position.set(-100, 40, 0); // 屏幕外左侧
+          scene.add(leftLight);
+
+          // 右侧柔光
+          const rightLight = new THREE.DirectionalLight(0xffffff, 0.3);
+          rightLight.position.set(100, 40, 0); // 屏幕外右侧
+          scene.add(rightLight);
+
+          // 5. 交互
+          raycaster = new THREE.Raycaster();
+          mouse = new THREE.Vector2();
+
+          // 6. 对象
+          createBoard();
+          initGameLogic();
+          createPiecesFromState();
+
+          // 7. 监听
+          window.addEventListener("resize", onWindowResize, false);
+          document.addEventListener("mousedown", onMouseDown, false);
+          document.addEventListener("mousemove", onMouseMove, false);
+          document.addEventListener("mouseup", onMouseUp, false);
+          document.addEventListener("wheel", onWheel, false);
+          document.addEventListener("contextmenu", (event) =>
+            event.preventDefault()
+          );
+
+          animate();
+        } catch (error) {
+          console.error("初始化游戏时出错:", error);
+          alert("初始化游戏时出错，请刷新页面重试。错误信息: " + error.message);
+        }
+      }
+
+      function createBoard() {
+        const geometry = new THREE.BoxGeometry(
+          CONFIG.tileSize,
+          2,
+          CONFIG.tileSize
+        );
+        const offset =
+          (CONFIG.boardSize * CONFIG.tileSize) / 2 - CONFIG.tileSize / 2;
+
+        for (let x = 0; x < CONFIG.boardSize; x++) {
+          for (let z = 0; z < CONFIG.boardSize; z++) {
+            const isWhite = (x + z) % 2 === 0;
+            const material = new THREE.MeshStandardMaterial({
+              color: isWhite
+                ? CONFIG.colors.whiteTile
+                : CONFIG.colors.blackTile,
+              roughness: 0.5,
+              metalness: 0.1,
+            });
+            const tile = new THREE.Mesh(geometry, material);
+            tile.position.set(
+              x * CONFIG.tileSize - offset,
+              -1,
+              z * CONFIG.tileSize - offset
+            );
+            tile.receiveShadow = true;
+            tile.userData = { type: "tile", x: x, z: z };
+            scene.add(tile);
+            tiles.push(tile);
+          }
+        }
+        const borderGeo = new THREE.BoxGeometry(
+          CONFIG.boardSize * CONFIG.tileSize + 6,
+          1.5,
+          CONFIG.boardSize * CONFIG.tileSize + 6
+        );
+        const borderMat = new THREE.MeshStandardMaterial({
+          color: 0x334455,
+          roughness: 0.8,
+        });
+        const border = new THREE.Mesh(borderGeo, borderMat);
+        border.position.y = -2.5;
+        border.receiveShadow = true;
+        scene.add(border);
+      }
+
+      function createPieceMesh(type, color) {
+        const group = new THREE.Group();
+        const isWhite = color === "white";
+
+        const material = new THREE.MeshStandardMaterial({
+          color: isWhite ? CONFIG.colors.whitePiece : CONFIG.colors.blackPiece,
+          emissive: isWhite
+            ? CONFIG.colors.whiteEmissive
+            : CONFIG.colors.blackEmissive,
+          // 增强自发光，提高可见度
+          emissiveIntensity: 0.8,
+          roughness: 0.3, // 增加反光
+          metalness: 0.5,
+          flatShading: true,
+        });
+
+        const baseGeo = new THREE.CylinderGeometry(3.5, 4, 1, 12);
+        const base = new THREE.Mesh(baseGeo, material);
+        base.position.y = 0.5;
+        base.castShadow = true;
+        base.userData.originalEmissive = material.emissive.getHex();
+        group.add(base);
+
+        let geo, mesh;
+        const addPart = (geometry, yPos, rotX = 0) => {
+          const m = new THREE.Mesh(geometry, material);
+          m.position.y = yPos;
+          if (rotX) m.rotation.x = rotX;
+          m.castShadow = true;
+          m.userData.originalEmissive = material.emissive.getHex();
+          group.add(m);
+          return m;
+        };
+
+        switch (type) {
+          case "pawn":
+            addPart(new THREE.CylinderGeometry(1, 3, 5, 7), 3.5);
+            addPart(new THREE.DodecahedronGeometry(1.5), 6.5);
+            const shield = addPart(new THREE.BoxGeometry(2, 3, 0.5), 3.5);
+            shield.position.z = 1.5;
+            break;
+          case "rook":
+            addPart(new THREE.BoxGeometry(4, 7, 4), 4.5);
+            addPart(new THREE.BoxGeometry(5, 1, 5), 8.5);
+            break;
+          case "knight":
+            addPart(new THREE.CylinderGeometry(2, 3, 4, 6), 3);
+            const kh = addPart(new THREE.BoxGeometry(2, 4, 5), 6, -Math.PI / 6);
+            kh.position.z = 1;
+            const mane = addPart(new THREE.BoxGeometry(0.5, 3, 1), 7);
+            mane.position.z = -1.5;
+            break;
+          case "bishop":
+            addPart(new THREE.CylinderGeometry(1, 2.5, 8, 5), 5);
+            addPart(new THREE.ConeGeometry(1.5, 3, 4), 9.5);
+            break;
+          case "queen":
+            addPart(new THREE.CylinderGeometry(1.5, 3, 10, 7), 6);
+            const qc = addPart(
+              new THREE.TorusKnotGeometry(1.2, 0.3, 30, 4),
+              11.5,
+              Math.PI / 2
+            );
+            addPart(new THREE.ConeGeometry(4, 1, 8), 8);
+            break;
+          case "king":
+            addPart(new THREE.CylinderGeometry(2, 3.5, 11, 8), 6.5);
+            addPart(new THREE.BoxGeometry(1, 3, 1), 13);
+            addPart(new THREE.BoxGeometry(2.5, 1, 1), 13);
+            break;
+        }
+        return group;
+      }
+
+      function createExplosion(position, colorHex) {
+        const particleCount = 25;
+
+        // 延迟创建共享几何体（只创建一次）
+        if (!sharedParticleGeometry) {
+          sharedParticleGeometry = new THREE.TetrahedronGeometry(1, 0);
+        }
+
+        // 获取或创建该颜色的材质
+        if (!particleMaterialCache[colorHex]) {
+          particleMaterialCache[colorHex] = new THREE.MeshStandardMaterial({
+            color: colorHex,
+            emissive: colorHex,
+            emissiveIntensity: 0.5,
+            roughness: 0.8,
+          });
+        }
+
+        const material = particleMaterialCache[colorHex];
+
+        for (let i = 0; i < particleCount; i++) {
+          const mesh = new THREE.Mesh(sharedParticleGeometry, material);
+          mesh.position.copy(position);
+          mesh.position.y += 3;
+
+          mesh.userData.velocity = new THREE.Vector3(
+            (Math.random() - 0.5) * 2.5,
+            Math.random() * 2.5 + 1,
+            (Math.random() - 0.5) * 2.5
+          );
+          mesh.userData.rotVel = new THREE.Vector3(
+            Math.random() * 0.3,
+            Math.random() * 0.3,
+            Math.random() * 0.3
+          );
+          scene.add(mesh);
+          particles.push(mesh);
+        }
+      }
+
+      function initGameLogic() {
+        for (let i = 0; i < 8; i++)
+          gameState.board[i] = new Array(8).fill(null);
+        const setupRow = (row, color, types) => {
+          types.forEach((type, col) => {
+            gameState.board[row][col] = {
+              type: type,
+              color: color,
+              hasMoved: false,
+            };
+          });
+        };
+        const backRow = [
+          "rook",
+          "knight",
+          "bishop",
+          "queen",
+          "king",
+          "bishop",
+          "knight",
+          "rook",
+        ];
+        const pawnRow = new Array(8).fill("pawn");
+        setupRow(0, "black", backRow);
+        setupRow(1, "black", pawnRow);
+        setupRow(6, "white", pawnRow);
+        setupRow(7, "white", backRow);
+      }
+
+      function createPiecesFromState() {
+        piecesMeshes.forEach((p) => scene.remove(p));
+        piecesMeshes = [];
+        const offset =
+          (CONFIG.boardSize * CONFIG.tileSize) / 2 - CONFIG.tileSize / 2;
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const pieceData = gameState.board[r][c];
+            if (pieceData) {
+              const mesh = createPieceMesh(pieceData.type, pieceData.color);
+              mesh.position.set(
+                c * CONFIG.tileSize - offset,
+                0,
+                r * CONFIG.tileSize - offset
+              );
+              // 统一的旋转逻辑：黑方面向下（不旋转），白方面向上（旋转180度）
+              if (pieceData.color === "white") {
+                mesh.rotation.y = Math.PI;
+              }
+              mesh.userData = {
+                isPiece: true,
+                r: r,
+                c: c,
+                color: pieceData.color,
+                type: pieceData.type,
+              };
+              scene.add(mesh);
+              piecesMeshes.push(mesh);
+            }
+          }
+        }
+      }
+
+      // --- 国际象棋规则引擎 ---
+
+      // 辅助函数：检查坐标是否在棋盘内
+      const isInside = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
+      const isEmpty = (r, c) => gameState.board[r][c] === null;
+      const isEnemy = (r, c, color) =>
+        gameState.board[r][c] !== null && gameState.board[r][c].color !== color;
+
+      // 找到某个颜色的国王位置
+      function findKing(color) {
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const piece = gameState.board[r][c];
+            if (piece && piece.type === "king" && piece.color === color) {
+              return { r, c };
+            }
+          }
+        }
+        return null;
+      }
+
+      // 检查某个格子是否被指定颜色攻击
+      function isSquareAttacked(r, c, byColor) {
+        // 检查所有对方棋子，看是否能攻击到这个格子
+        for (let fr = 0; fr < 8; fr++) {
+          for (let fc = 0; fc < 8; fc++) {
+            const piece = gameState.board[fr][fc];
+            if (piece && piece.color === byColor) {
+              const moves = getPseudoLegalMoves(fr, fc, piece);
+              if (moves.some((m) => m.r === r && m.c === c)) {
+                return true;
+              }
+            }
+          }
+        }
+        return false;
+      }
+
+      // 获取伪合法移动（不考虑将军）
+      function getPseudoLegalMoves(r, c, piece) {
+        let moves = [];
+
+        const directions = {
+          bishop: [
+            [1, 1],
+            [1, -1],
+            [-1, 1],
+            [-1, -1],
+          ],
+          rook: [
+            [1, 0],
+            [-1, 0],
+            [0, 1],
+            [0, -1],
+          ],
+          knight: [
+            [2, 1],
+            [2, -1],
+            [-2, 1],
+            [-2, -1],
+            [1, 2],
+            [1, -2],
+            [-1, 2],
+            [-1, -2],
+          ],
+          king: [
+            [1, 0],
+            [-1, 0],
+            [0, 1],
+            [0, -1],
+            [1, 1],
+            [1, -1],
+            [-1, 1],
+            [-1, -1],
+          ],
+        };
+        directions.queen = [...directions.bishop, ...directions.rook];
+
+        const addSlidingMoves = (dirs) => {
+          dirs.forEach((dir) => {
+            let nr = r + dir[0];
+            let nc = c + dir[1];
+            while (isInside(nr, nc)) {
+              if (isEmpty(nr, nc)) {
+                moves.push({ r: nr, c: nc });
+              } else {
+                if (isEnemy(nr, nc, piece.color)) moves.push({ r: nr, c: nc });
+                break;
+              }
+              nr += dir[0];
+              nc += dir[1];
+            }
+          });
+        };
+
+        if (piece.type === "pawn") {
+          const direction = piece.color === "white" ? -1 : 1;
+          const startRow = piece.color === "white" ? 6 : 1;
+          const enPassantRow = piece.color === "white" ? 3 : 4;
+
+          // 向前移动
+          if (isInside(r + direction, c) && isEmpty(r + direction, c)) {
+            moves.push({ r: r + direction, c: c });
+            // 首次移动可以走两格
+            if (r === startRow && isEmpty(r + direction * 2, c)) {
+              moves.push({
+                r: r + direction * 2,
+                c: c,
+                isDoublePawnPush: true,
+              });
+            }
+          }
+          // 对角线吃子
+          [
+            [direction, 1],
+            [direction, -1],
+          ].forEach((offset) => {
+            const nr = r + offset[0];
+            const nc = c + offset[1];
+            if (isInside(nr, nc) && isEnemy(nr, nc, piece.color)) {
+              moves.push({ r: nr, c: nc });
+            }
+          });
+
+          // 吃过路兵 (En Passant)
+          if (r === enPassantRow && gameState.lastMove) {
+            const lastMove = gameState.lastMove;
+            // 检查上一步是否是对方兵的双格移动
+            if (
+              lastMove.piece.type === "pawn" &&
+              Math.abs(lastMove.toR - lastMove.fromR) === 2 &&
+              lastMove.toR === r &&
+              Math.abs(lastMove.toC - c) === 1
+            ) {
+              moves.push({
+                r: r + direction,
+                c: lastMove.toC,
+                isEnPassant: true,
+                enPassantCapture: { r: lastMove.toR, c: lastMove.toC },
+              });
+            }
+          }
+        } else if (piece.type === "knight") {
+          directions.knight.forEach((dir) => {
+            const nr = r + dir[0];
+            const nc = c + dir[1];
+            if (
+              isInside(nr, nc) &&
+              (isEmpty(nr, nc) || isEnemy(nr, nc, piece.color))
+            ) {
+              moves.push({ r: nr, c: nc });
+            }
+          });
+        } else if (piece.type === "king") {
+          directions.king.forEach((dir) => {
+            const nr = r + dir[0];
+            const nc = c + dir[1];
+            if (
+              isInside(nr, nc) &&
+              (isEmpty(nr, nc) || isEnemy(nr, nc, piece.color))
+            ) {
+              moves.push({ r: nr, c: nc });
+            }
+          });
+
+          // 王车易位 (Castling)
+          if (!piece.hasMoved && !isInCheck(piece.color)) {
+            const row = r; // 国王所在行
+            const enemyColor = piece.color === "white" ? "black" : "white";
+
+            // 短易位 (King side)
+            const kingsideRook = gameState.board[row][7];
+            if (
+              kingsideRook &&
+              kingsideRook.type === "rook" &&
+              kingsideRook.color === piece.color &&
+              !kingsideRook.hasMoved
+            ) {
+              // 检查中间是否有棋子
+              if (isEmpty(row, 5) && isEmpty(row, 6)) {
+                // 检查国王经过的格子是否被攻击
+                if (
+                  !isSquareAttacked(row, 5, enemyColor) &&
+                  !isSquareAttacked(row, 6, enemyColor)
+                ) {
+                  moves.push({
+                    r: row,
+                    c: 6,
+                    isCastling: true,
+                    rookFrom: 7,
+                    rookTo: 5,
+                  });
+                }
+              }
+            }
+
+            // 长易位 (Queen side)
+            const queensideRook = gameState.board[row][0];
+            if (
+              queensideRook &&
+              queensideRook.type === "rook" &&
+              queensideRook.color === piece.color &&
+              !queensideRook.hasMoved
+            ) {
+              // 检查中间是否有棋子
+              if (isEmpty(row, 1) && isEmpty(row, 2) && isEmpty(row, 3)) {
+                // 检查国王经过的格子是否被攻击
+                if (
+                  !isSquareAttacked(row, 2, enemyColor) &&
+                  !isSquareAttacked(row, 3, enemyColor)
+                ) {
+                  moves.push({
+                    r: row,
+                    c: 2,
+                    isCastling: true,
+                    rookFrom: 0,
+                    rookTo: 3,
+                  });
+                }
+              }
+            }
+          }
+        } else if (["rook", "bishop", "queen"].includes(piece.type)) {
+          addSlidingMoves(directions[piece.type]);
+        }
+        return moves;
+      }
+
+      // 检查某个颜色是否被将军
+      function isInCheck(color) {
+        const kingPos = findKing(color);
+        if (!kingPos) return false;
+        const enemyColor = color === "white" ? "black" : "white";
+        return isSquareAttacked(kingPos.r, kingPos.c, enemyColor);
+      }
+
+      // 模拟移动并检查是否会导致己方被将军
+      function wouldBeInCheck(fromR, fromC, toR, toC) {
+        const piece = gameState.board[fromR][fromC];
+        if (!piece) return true;
+
+        // 保存原始状态
+        const originalTarget = gameState.board[toR][toC];
+
+        // 临时执行移动
+        gameState.board[toR][toC] = piece;
+        gameState.board[fromR][fromC] = null;
+
+        // 检查是否被将军
+        const inCheck = isInCheck(piece.color);
+
+        // 恢复原始状态
+        gameState.board[fromR][fromC] = piece;
+        gameState.board[toR][toC] = originalTarget;
+
+        return inCheck;
+      }
+
+      // 获取真正合法的移动（过滤掉会导致己方被将军的移动）
+      function getValidMoves(r, c, piece) {
+        const pseudoMoves = getPseudoLegalMoves(r, c, piece);
+        return pseudoMoves.filter(
+          (move) => !wouldBeInCheck(r, c, move.r, move.c)
+        );
+      }
+
+      // 检查某个颜色是否还有合法移动
+      function hasLegalMoves(color) {
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const piece = gameState.board[r][c];
+            if (piece && piece.color === color) {
+              const moves = getValidMoves(r, c, piece);
+              if (moves.length > 0) return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      // 检查是否将死
+      function isCheckmate(color) {
+        return isInCheck(color) && !hasLegalMoves(color);
+      }
+
+      // 检查是否僵局
+      function isStalemate(color) {
+        return !isInCheck(color) && !hasLegalMoves(color);
+      }
+
+      function onMouseDown(event) {
+        if (event.target.closest("#music-btn")) return;
+        if (event.button === 2) {
+          isDragging = true;
+          previousMousePosition = { x: event.clientX, y: event.clientY };
+          return;
+        }
+        if (gameState.gameOver || gameState.isAnimating) return;
+
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+
+        const pieceIntersects = raycaster.intersectObjects(piecesMeshes, true);
+        const tileIntersects = raycaster.intersectObjects(tiles);
+
+        if (gameState.selectedPiece && tileIntersects.length > 0) {
+          const tile = tileIntersects[0].object;
+          const move = gameState.validMoves.find(
+            (m) => m.r === tile.userData.z && m.c === tile.userData.x
+          );
+          if (move) {
+            executeMove(move);
+            return;
+          }
+        }
+
+        if (pieceIntersects.length > 0) {
+          let target = pieceIntersects[0].object;
+          while (target.parent && !target.userData.isPiece) {
+            target = target.parent;
+          }
+          if (
+            target.userData.isPiece &&
+            target.userData.color === gameState.turn
+          ) {
+            selectPiece(target);
+          }
+        } else if (tileIntersects.length > 0 && gameState.selectedPiece) {
+          clearSelection();
+        }
+      }
+
+      function selectPiece(mesh) {
+        clearSelection();
+        gameState.selectedPiece = mesh;
+        mesh.children.forEach((child) => {
+          if (child.material) {
+            child.material.emissive.setHex(0xffaa00);
+            child.material.emissiveIntensity = 1.2; // 选中时增加自发光
+          }
+        });
+        const moves = getValidMoves(
+          mesh.userData.r,
+          mesh.userData.c,
+          gameState.board[mesh.userData.r][mesh.userData.c]
+        );
+        gameState.validMoves = moves;
+        moves.forEach((m) => {
+          const tile = tiles.find(
+            (t) => t.userData.z === m.r && t.userData.x === m.c
+          );
+          if (tile) {
+            // 保存原始颜色，优先使用原始棋盘颜色而不是高亮颜色
+            if (!tile.currentHex) {
+              const isWhite = (tile.userData.x + tile.userData.z) % 2 === 0;
+              tile.currentHex = isWhite
+                ? CONFIG.colors.whiteTile
+                : CONFIG.colors.blackTile;
+            }
+            if (gameState.board[m.r][m.c]) {
+              tile.material.color.setHex(0xff3333);
+            } else {
+              tile.material.color.setHex(CONFIG.colors.validMove);
+            }
+          }
+        });
+      }
+
+      function clearSelection() {
+        if (gameState.selectedPiece) {
+          gameState.selectedPiece.children.forEach((child) => {
+            if (child.material) {
+              child.material.emissive.setHex(child.userData.originalEmissive);
+              child.material.emissiveIntensity = 0.8; // 恢复自发光
+            }
+          });
+        }
+        gameState.validMoves.forEach((m) => {
+          const tile = tiles.find(
+            (t) => t.userData.z === m.r && t.userData.x === m.c
+          );
+          if (tile && tile.currentHex !== undefined) {
+            tile.material.color.setHex(tile.currentHex);
+          }
+        });
+        gameState.selectedPiece = null;
+        gameState.validMoves = [];
+      }
+
+      function highlightLastMove(fromR, fromC, toR, toC) {
+        // 清除之前的高亮
+        gameState.highlightedTiles.forEach((tile) => {
+          if (tile.originalColor !== undefined) {
+            tile.material.color.setHex(tile.originalColor);
+          }
+        });
+        gameState.highlightedTiles = [];
+
+        // 高亮新的移动
+        const fromTile = tiles.find(
+          (t) => t.userData.z === fromR && t.userData.x === fromC
+        );
+        const toTile = tiles.find(
+          (t) => t.userData.z === toR && t.userData.x === toC
+        );
+
+        const highlightColor = 0xffdd88; // 淡黄色高亮
+        if (fromTile) {
+          fromTile.originalColor = fromTile.material.color.getHex();
+          fromTile.material.color.setHex(highlightColor);
+          gameState.highlightedTiles.push(fromTile);
+        }
+        if (toTile) {
+          toTile.originalColor = toTile.material.color.getHex();
+          toTile.material.color.setHex(highlightColor);
+          gameState.highlightedTiles.push(toTile);
+        }
+      }
+
+      function executeMove(targetMove) {
+        gameState.isAnimating = true;
+        const movingPiece = gameState.selectedPiece;
+        SoundManager.playMoveSound();
+        const fromR = movingPiece.userData.r;
+        const fromC = movingPiece.userData.c;
+        const toR = targetMove.r;
+        const toC = targetMove.c;
+        const targetPieceData = gameState.board[toR][toC];
+        let capturedMesh = null;
+
+        // 处理普通吃子
+        if (targetPieceData) {
+          capturedMesh = piecesMeshes.find(
+            (p) => p.userData.r === toR && p.userData.c === toC
+          );
+        }
+
+        // 处理吃过路兵
+        let enPassantCapture = null;
+        if (targetMove.isEnPassant) {
+          const capturePos = targetMove.enPassantCapture;
+          enPassantCapture = piecesMeshes.find(
+            (p) =>
+              p.userData.r === capturePos.r && p.userData.c === capturePos.c
+          );
+        }
+
+        const offset =
+          (CONFIG.boardSize * CONFIG.tileSize) / 2 - CONFIG.tileSize / 2;
+        const targetX = toC * CONFIG.tileSize - offset;
+        const targetZ = toR * CONFIG.tileSize - offset;
+        const startPos = movingPiece.position.clone();
+        const endPos = new THREE.Vector3(targetX, 0, targetZ);
+        let progress = 0;
+        function animateMove() {
+          progress += 0.05;
+          if (progress > 1) progress = 1;
+          const currentPos = new THREE.Vector3().lerpVectors(
+            startPos,
+            endPos,
+            progress
+          );
+          currentPos.y = Math.sin(progress * Math.PI) * 8;
+          movingPiece.position.copy(currentPos);
+          movingPiece.rotation.z = Math.sin(progress * Math.PI * 4) * 0.1;
+          if (progress < 1) {
+            requestAnimationFrame(animateMove);
+          } else {
+            movingPiece.rotation.z = 0;
+            finishMove(
+              fromR,
+              fromC,
+              toR,
+              toC,
+              capturedMesh,
+              targetMove,
+              enPassantCapture
+            );
+          }
+        }
+        animateMove();
+        clearSelection();
+      }
+
+      function finishMove(
+        fromR,
+        fromC,
+        toR,
+        toC,
+        capturedMesh,
+        moveInfo,
+        enPassantCapture
+      ) {
+        // 处理普通吃子
+        if (capturedMesh) {
+          SoundManager.playDestroySound();
+          createExplosion(
+            capturedMesh.position,
+            capturedMesh.userData.color === "white"
+              ? CONFIG.colors.whitePiece
+              : CONFIG.colors.blackPiece
+          );
+          scene.remove(capturedMesh);
+          piecesMeshes = piecesMeshes.filter((p) => p !== capturedMesh);
+        }
+
+        // 处理吃过路兵
+        if (enPassantCapture) {
+          SoundManager.playDestroySound();
+          const capturePos = moveInfo.enPassantCapture;
+          gameState.board[capturePos.r][capturePos.c] = null;
+          createExplosion(
+            enPassantCapture.position,
+            enPassantCapture.userData.color === "white"
+              ? CONFIG.colors.whitePiece
+              : CONFIG.colors.blackPiece
+          );
+          scene.remove(enPassantCapture);
+          piecesMeshes = piecesMeshes.filter((p) => p !== enPassantCapture);
+        }
+
+        const movingPiece = gameState.board[fromR][fromC];
+        gameState.board[toR][toC] = movingPiece;
+        gameState.board[fromR][fromC] = null;
+        movingPiece.hasMoved = true;
+
+        const movedMesh = piecesMeshes.find(
+          (p) => p.userData.r === fromR && p.userData.c === fromC
+        );
+        movedMesh.userData.r = toR;
+        movedMesh.userData.c = toC;
+        movedMesh.position.y = 0;
+
+        // 处理王车易位 - 移动车
+        if (moveInfo && moveInfo.isCastling) {
+          const rookFromC = moveInfo.rookFrom;
+          const rookToC = moveInfo.rookTo;
+          const rookPiece = gameState.board[toR][rookFromC];
+          const rookMesh = piecesMeshes.find(
+            (p) => p.userData.r === toR && p.userData.c === rookFromC
+          );
+
+          gameState.board[toR][rookToC] = rookPiece;
+          gameState.board[toR][rookFromC] = null;
+          rookPiece.hasMoved = true;
+
+          const offset =
+            (CONFIG.boardSize * CONFIG.tileSize) / 2 - CONFIG.tileSize / 2;
+          rookMesh.position.x = rookToC * CONFIG.tileSize - offset;
+          rookMesh.userData.c = rookToC;
+        }
+
+        // 处理兵升变
+        if (movingPiece.type === "pawn") {
+          if (
+            (movingPiece.color === "white" && toR === 0) ||
+            (movingPiece.color === "black" && toR === 7)
+          ) {
+            movingPiece.type = "queen";
+            scene.remove(movedMesh);
+            piecesMeshes = piecesMeshes.filter((p) => p !== movedMesh);
+            const newQueen = createPieceMesh("queen", movingPiece.color);
+            newQueen.position.copy(movedMesh.position);
+            newQueen.userData = movedMesh.userData;
+            newQueen.userData.type = "queen";
+            scene.add(newQueen);
+            piecesMeshes.push(newQueen);
+            createExplosion(newQueen.position, 0xffff00);
+          }
+        }
+
+        // 记录移动历史 - 保存足够的信息用于悔棋
+        gameState.lastMove = {
+          piece: { ...movingPiece }, // 深拷贝，保存移动前的状态
+          fromR: fromR,
+          fromC: fromC,
+          toR: toR,
+          toC: toC,
+          captured: capturedMesh ? { ...capturedMesh.userData } : null,
+          enPassantCapture: enPassantCapture
+            ? { ...enPassantCapture.userData }
+            : null,
+          isCastling: moveInfo ? moveInfo.isCastling : false,
+          rookMove:
+            moveInfo && moveInfo.isCastling
+              ? {
+                  from: moveInfo.rookFrom,
+                  to: moveInfo.rookTo,
+                }
+              : null,
+          wasPromotion:
+            movingPiece.type === "queen" &&
+            ((movingPiece.color === "white" && toR === 0) ||
+              (movingPiece.color === "black" && toR === 7)),
+          previousLastMove: gameState.lastMove, // 保存前一个 lastMove 用于恢复吃过路兵
+        };
+        gameState.moveHistory.push(gameState.lastMove);
+
+        // 高亮显示这一步移动
+        highlightLastMove(fromR, fromC, toR, toC);
+
+        gameState.isAnimating = false;
+        updateUndoButton(); // 更新悔棋按钮状态
+        if (!gameState.gameOver) switchTurn();
+      }
+
+      function switchTurn() {
+        gameState.turn = gameState.turn === "white" ? "black" : "white";
+
+        // 检查将死
+        if (isCheckmate(gameState.turn)) {
+          const winner = gameState.turn === "white" ? "black" : "white";
+          endGame(winner, "checkmate");
+          return;
+        }
+
+        // 检查僵局
+        if (isStalemate(gameState.turn)) {
+          endGame(null, "stalemate");
+          return;
+        }
+
+        // 更新状态显示
+        const statusDiv = document.getElementById("status");
+        const turnText = gameState.turn === "white" ? "白方" : "黑方";
+        const inCheck = isInCheck(gameState.turn);
+
+        if (inCheck) {
+          statusDiv.innerText = `轮到：${turnText} (将军！)`;
+          statusDiv.style.color = "#ff3333";
+          statusDiv.style.textShadow = "0 0 15px #ff3333";
+        } else {
+          statusDiv.innerText = `轮到：${turnText}`;
+          statusDiv.style.color = gameState.turn === "white" ? "#fff" : "#aaa";
+          statusDiv.style.textShadow = "0 0 10px #ffaa00";
+        }
+      }
+
+      function undoMove() {
+        if (gameState.moveHistory.length === 0 || gameState.isAnimating) return;
+
+        const lastMove = gameState.moveHistory.pop();
+        gameState.lastMove = lastMove.previousLastMove;
+
+        // 恢复棋盘状态
+        const pieceData = lastMove.piece;
+
+        // 如果是兵升变，需要恢复为兵
+        if (lastMove.wasPromotion) {
+          pieceData.type = "pawn";
+        }
+
+        // 移回原位置
+        gameState.board[lastMove.fromR][lastMove.fromC] = pieceData;
+        gameState.board[lastMove.toR][lastMove.toC] = null;
+
+        // 更新 mesh
+        const movedMesh = piecesMeshes.find(
+          (p) => p.userData.r === lastMove.toR && p.userData.c === lastMove.toC
+        );
+        if (movedMesh) {
+          // 如果是升变的棋子，需要重新创建兵的 mesh
+          if (lastMove.wasPromotion) {
+            scene.remove(movedMesh);
+            piecesMeshes = piecesMeshes.filter((p) => p !== movedMesh);
+
+            const pawnMesh = createPieceMesh("pawn", pieceData.color);
+            const offset =
+              (CONFIG.boardSize * CONFIG.tileSize) / 2 - CONFIG.tileSize / 2;
+            pawnMesh.position.set(
+              lastMove.fromC * CONFIG.tileSize - offset,
+              0,
+              lastMove.fromR * CONFIG.tileSize - offset
+            );
+            pawnMesh.userData = {
+              isPiece: true,
+              r: lastMove.fromR,
+              c: lastMove.fromC,
+              color: pieceData.color,
+              type: "pawn",
+            };
+            scene.add(pawnMesh);
+            piecesMeshes.push(pawnMesh);
+          } else {
+            const offset =
+              (CONFIG.boardSize * CONFIG.tileSize) / 2 - CONFIG.tileSize / 2;
+            movedMesh.position.set(
+              lastMove.fromC * CONFIG.tileSize - offset,
+              0,
+              lastMove.fromR * CONFIG.tileSize - offset
+            );
+            movedMesh.userData.r = lastMove.fromR;
+            movedMesh.userData.c = lastMove.fromC;
+          }
+        }
+
+        // 恢复被吃的棋子
+        if (lastMove.captured) {
+          const capturedPieceData = {
+            type: lastMove.captured.type,
+            color: lastMove.captured.color,
+            hasMoved: true,
+          };
+          gameState.board[lastMove.toR][lastMove.toC] = capturedPieceData;
+
+          const capturedMesh = createPieceMesh(
+            capturedPieceData.type,
+            capturedPieceData.color
+          );
+          const offset =
+            (CONFIG.boardSize * CONFIG.tileSize) / 2 - CONFIG.tileSize / 2;
+          capturedMesh.position.set(
+            lastMove.toC * CONFIG.tileSize - offset,
+            0,
+            lastMove.toR * CONFIG.tileSize - offset
+          );
+          capturedMesh.userData = {
+            isPiece: true,
+            r: lastMove.toR,
+            c: lastMove.toC,
+            color: capturedPieceData.color,
+            type: capturedPieceData.type,
+          };
+          scene.add(capturedMesh);
+          piecesMeshes.push(capturedMesh);
+        }
+
+        // 恢复吃过路兵
+        if (lastMove.enPassantCapture) {
+          const enPassantData = lastMove.enPassantCapture;
+          const capturedPieceData = {
+            type: "pawn",
+            color: enPassantData.color,
+            hasMoved: true,
+          };
+          gameState.board[enPassantData.r][enPassantData.c] = capturedPieceData;
+
+          const capturedMesh = createPieceMesh("pawn", capturedPieceData.color);
+          const offset =
+            (CONFIG.boardSize * CONFIG.tileSize) / 2 - CONFIG.tileSize / 2;
+          capturedMesh.position.set(
+            enPassantData.c * CONFIG.tileSize - offset,
+            0,
+            enPassantData.r * CONFIG.tileSize - offset
+          );
+          capturedMesh.userData = {
+            isPiece: true,
+            r: enPassantData.r,
+            c: enPassantData.c,
+            color: capturedPieceData.color,
+            type: "pawn",
+          };
+          scene.add(capturedMesh);
+          piecesMeshes.push(capturedMesh);
+        }
+
+        // 恢复王车易位
+        if (lastMove.isCastling) {
+          const rookMove = lastMove.rookMove;
+          const rookPiece = gameState.board[lastMove.toR][rookMove.to];
+          gameState.board[lastMove.toR][rookMove.from] = rookPiece;
+          gameState.board[lastMove.toR][rookMove.to] = null;
+
+          const rookMesh = piecesMeshes.find(
+            (p) => p.userData.r === lastMove.toR && p.userData.c === rookMove.to
+          );
+          if (rookMesh) {
+            const offset =
+              (CONFIG.boardSize * CONFIG.tileSize) / 2 - CONFIG.tileSize / 2;
+            rookMesh.position.x = rookMove.from * CONFIG.tileSize - offset;
+            rookMesh.userData.c = rookMove.from;
+          }
+        }
+
+        // 切换回合
+        gameState.turn = gameState.turn === "white" ? "black" : "white";
+        gameState.gameOver = false;
+
+        // 更新状态显示
+        const statusDiv = document.getElementById("status");
+        const turnText = gameState.turn === "white" ? "白方" : "黑方";
+        statusDiv.innerText = `轮到：${turnText}`;
+        statusDiv.style.color = gameState.turn === "white" ? "#fff" : "#aaa";
+        statusDiv.style.textShadow = "0 0 10px #ffaa00";
+
+        // 隐藏游戏结束弹窗
+        document.getElementById("game-over-modal").style.display = "none";
+
+        // 更新悔棋按钮状态
+        updateUndoButton();
+      }
+
+      function updateUndoButton() {
+        const undoBtn = document.getElementById("undo-btn");
+        if (gameState.moveHistory.length > 0) {
+          undoBtn.style.display = "flex";
+          undoBtn.classList.remove("disabled");
+        } else {
+          undoBtn.classList.add("disabled");
+        }
+      }
+
+      function endGame(winner, reason) {
+        gameState.gameOver = true;
+        const modal = document.getElementById("game-over-modal");
+        const text = document.getElementById("winner-text");
+
+        if (reason === "checkmate") {
+          text.innerText = `${winner === "white" ? "白方" : "黑方"} 将死获胜！`;
+          text.style.color = "#ffaa00";
+        } else if (reason === "stalemate") {
+          text.innerText = "平局 - 僵局";
+          text.style.color = "#888";
+        } else if (reason === "capture") {
+          // 保留向后兼容性（虽然理论上不应该发生）
+          text.innerText = `${winner === "white" ? "白方" : "黑方"} 获胜！`;
+          text.style.color = "#ffaa00";
+        }
+
+        modal.style.display = "block";
+      }
+
+      function onMouseMove(event) {
+        if (isDragging) {
+          const deltaX = event.clientX - previousMousePosition.x;
+          cameraAngle -= deltaX * 0.005;
+          updateCameraPosition();
+          previousMousePosition = { x: event.clientX, y: event.clientY };
+        }
+      }
+
+      function onMouseUp() {
+        isDragging = false;
+      }
+      function onWheel(event) {
+        cameraZoom += event.deltaY * 0.05;
+        cameraZoom = Math.max(20, Math.min(200, cameraZoom));
+        updateCameraPosition();
+      }
+
+      function updateCameraPosition() {
+        const yHeight = cameraZoom;
+        const radius = cameraZoom * 0.8;
+        camera.position.x = Math.sin(cameraAngle) * radius;
+        camera.position.z = Math.cos(cameraAngle) * radius;
+        camera.position.y = yHeight;
+        camera.lookAt(0, 0, 0);
+      }
+
+      function onWindowResize() {
+        try {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        } catch (error) {
+          console.error("调整窗口大小时出错:", error);
+        }
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        // 早期退出优化
+        if (particles.length > 0) {
+          for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.position.add(p.userData.velocity);
+            p.rotation.x += p.userData.rotVel.x;
+            p.rotation.y += p.userData.rotVel.y;
+            p.userData.velocity.y -= 0.15;
+            if (p.position.y < -10) {
+              scene.remove(p);
+              // 不需要 dispose 几何体和材质，因为它们是共享的
+              // 只需要从场景中移除 mesh
+              particles.splice(i, 1);
+            }
+          }
+        }
+        renderer.render(scene, camera);
+      }
+
+      init();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>理想国 | Πολιτεία | The Republic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --marble-white: #f8f6f0;
+            --marble-light: #e8e4dc;
+            --gold-pure: #d4af37;
+            --gold-light: #f4d03f;
+            --gold-dark: #b8860b;
+            --bronze: #cd7f32;
+            --indigo-deep: #1a1a2e;
+            --indigo-dark: #16213e;
+            --indigo-mid: #0f3460;
+            --cave-black: #0a0a0f;
+            --philosopher-gold: #ffd700;
+            --guardian-red: #c0392b;
+            --producer-bronze: #8b7355;
+            --text-light: rgba(255, 255, 255, 0.9);
+            --text-dim: rgba(255, 255, 255, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Cormorant Garamond', serif;
+            background: var(--cave-black);
+            color: var(--text-light);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--indigo-deep); }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--gold-dark), var(--gold-pure));
+            border-radius: 3px;
+        }
+
+        /* Navigation */
+        .nav-back {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            width: 50px;
+            height: 50px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            background: rgba(10, 10, 15, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-back:hover {
+            border-color: var(--gold-pure);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .nav-back svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--gold-pure);
+        }
+
+        .lang-toggle {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 25px;
+            background: rgba(10, 10, 15, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            font-size: 0.9rem;
+        }
+
+        .lang-toggle span {
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .lang-toggle span.active,
+        .lang-toggle span:hover {
+            color: var(--gold-pure);
+        }
+
+        /* Particle Canvas */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Section Base */
+        section {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 100px 40px;
+            z-index: 2;
+        }
+
+        /* ==================== HERO ==================== */
+        #hero {
+            background: linear-gradient(180deg,
+                var(--cave-black) 0%,
+                var(--indigo-deep) 30%,
+                var(--indigo-dark) 60%,
+                #2a1810 100%);
+            min-height: 100vh;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero-bg-glow {
+            position: absolute;
+            bottom: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150%;
+            height: 80%;
+            background: radial-gradient(ellipse at center bottom,
+                rgba(212, 175, 55, 0.15) 0%,
+                transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 10;
+            max-width: 900px;
+        }
+
+        .hero-greek {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            letter-spacing: 0.8em;
+            color: var(--gold-dark);
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+
+        .hero-title {
+            font-size: clamp(4rem, 15vw, 12rem);
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .hero-title .char {
+            display: inline-block;
+            background: linear-gradient(135deg,
+                var(--gold-light) 0%,
+                var(--gold-pure) 30%,
+                var(--bronze) 70%,
+                var(--gold-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: charFloat 3s ease-in-out infinite;
+            text-shadow: none;
+        }
+
+        .hero-title .char:nth-child(1) { animation-delay: 0s; }
+        .hero-title .char:nth-child(2) { animation-delay: 0.2s; }
+        .hero-title .char:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes charFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .hero-author {
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            letter-spacing: 0.5em;
+            color: var(--gold-dark);
+            margin-bottom: 40px;
+        }
+
+        .hero-quote {
+            font-size: clamp(1rem, 2vw, 1.3rem);
+            font-style: italic;
+            color: var(--text-dim);
+            max-width: 700px;
+            margin: 0 auto 60px;
+            line-height: 1.8;
+        }
+
+        .scroll-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: var(--gold-dark);
+            font-size: 0.85rem;
+            letter-spacing: 0.3em;
+            animation: scrollBounce 2s ease-in-out infinite;
+        }
+
+        .scroll-indicator .line {
+            width: 1px;
+            height: 40px;
+            background: linear-gradient(to bottom, var(--gold-dark), transparent);
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { transform: translateY(0); opacity: 1; }
+            50% { transform: translateY(10px); opacity: 0.5; }
+        }
+
+        /* ==================== ARCHIVES (智者档案) ==================== */
+        #archives {
+            background: linear-gradient(180deg,
+                #2a1810 0%,
+                var(--indigo-deep) 30%,
+                var(--cave-black) 100%);
+            padding-top: 150px;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-tag {
+            font-size: 0.85rem;
+            letter-spacing: 0.3em;
+            color: var(--gold-dark);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .section-tag::before,
+        .section-tag::after {
+            content: '';
+            width: 30px;
+            height: 1px;
+            background: var(--gold-dark);
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 500;
+            color: var(--marble-white);
+            margin-bottom: 15px;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        .archives-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .archives-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+        }
+
+        .archive-card {
+            background: linear-gradient(135deg,
+                rgba(212, 175, 55, 0.08) 0%,
+                rgba(26, 26, 46, 0.9) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .archive-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--gold-pure), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .archive-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold-pure);
+            box-shadow: 0 20px 60px rgba(212, 175, 55, 0.15);
+        }
+
+        .archive-card:hover::before {
+            opacity: 1;
+        }
+
+        .archive-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--gold-dark);
+            border-radius: 50%;
+            font-size: 2rem;
+        }
+
+        .archive-card h3 {
+            font-size: 1.5rem;
+            color: var(--gold-pure);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .archive-card .subtitle {
+            font-size: 0.85rem;
+            color: var(--gold-dark);
+            letter-spacing: 0.2em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .archive-card p {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            text-align: center;
+            line-height: 1.7;
+            margin-bottom: 25px;
+        }
+
+        .archive-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--gold-dark);
+            opacity: 0.7;
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
+            padding-top: 15px;
+        }
+
+        /* ==================== DIALECTIC (辩证法推演) ==================== */
+        #dialectic {
+            background: var(--cave-black);
+            padding: 150px 40px;
+        }
+
+        .dialectic-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 60px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .dialectic-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .dialectic-title .dot {
+            width: 10px;
+            height: 10px;
+            background: var(--guardian-red);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .dialectic-title h2 {
+            font-size: 1.8rem;
+            font-weight: 400;
+            color: var(--text-dim);
+        }
+
+        .dialectic-status {
+            display: flex;
+            gap: 30px;
+            font-size: 0.85rem;
+        }
+
+        .dialectic-status span {
+            color: var(--text-dim);
+        }
+
+        .dialectic-status .value {
+            color: var(--gold-pure);
+            margin-left: 10px;
+        }
+
+        .dialectic-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .dialectic-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .dialectic-card {
+            background: rgba(26, 26, 46, 0.5);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 8px;
+            padding: 35px;
+            position: relative;
+        }
+
+        .dialectic-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .dialectic-card h3 {
+            font-size: 1.4rem;
+            color: var(--marble-white);
+            margin-bottom: 5px;
+        }
+
+        .dialectic-card .tag {
+            font-size: 0.75rem;
+            color: var(--gold-dark);
+            letter-spacing: 0.1em;
+        }
+
+        .progress-ring {
+            width: 60px;
+            height: 60px;
+            position: relative;
+        }
+
+        .progress-ring svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .progress-ring circle {
+            fill: none;
+            stroke-width: 3;
+        }
+
+        .progress-ring .bg {
+            stroke: rgba(212, 175, 55, 0.1);
+        }
+
+        .progress-ring .progress {
+            stroke: var(--gold-pure);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .progress-ring .value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.75rem;
+            color: var(--gold-pure);
+        }
+
+        .dialectic-card p {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            line-height: 1.7;
+            margin-bottom: 25px;
+        }
+
+        .data-stream {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            opacity: 0.5;
+            font-family: monospace;
+        }
+
+        .dialectic-footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 0.9rem;
+            color: var(--gold-dark);
+            opacity: 0;
+            animation: fadeIn 1s ease forwards 2s;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* ==================== CAVE ALLEGORY (洞穴之喻) ==================== */
+        #cave {
+            min-height: 120vh;
+            background: linear-gradient(180deg,
+                var(--cave-black) 0%,
+                var(--cave-black) 40%,
+                #1a1208 70%,
+                #3d2914 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cave-content {
+            text-align: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .cave-title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 300;
+            color: var(--marble-white);
+            opacity: 0.3;
+            margin-bottom: 20px;
+            letter-spacing: 0.1em;
+        }
+
+        .cave-subtitle {
+            font-size: 1.2rem;
+            color: var(--gold-dark);
+            letter-spacing: 0.5em;
+            margin-bottom: 60px;
+        }
+
+        .cave-rings {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 0 auto;
+        }
+
+        .cave-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid var(--gold-dark);
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+
+        .cave-ring:nth-child(1) {
+            width: 100px;
+            height: 100px;
+            animation: ringPulse 3s ease-out infinite;
+        }
+
+        .cave-ring:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            animation: ringPulse 3s ease-out infinite 0.5s;
+        }
+
+        .cave-ring:nth-child(3) {
+            width: 300px;
+            height: 300px;
+            animation: ringPulse 3s ease-out infinite 1s;
+        }
+
+        .cave-ring:nth-child(4) {
+            width: 400px;
+            height: 400px;
+            animation: ringPulse 3s ease-out infinite 1.5s;
+        }
+
+        @keyframes ringPulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+        }
+
+        .cave-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle,
+                var(--gold-light) 0%,
+                var(--gold-pure) 30%,
+                transparent 70%);
+            border-radius: 50%;
+            box-shadow: 0 0 60px var(--gold-pure),
+                        0 0 120px rgba(212, 175, 55, 0.5);
+        }
+
+        /* ==================== CITY CLASSES (城邦阶层) ==================== */
+        #classes {
+            background: var(--cave-black);
+            padding: 150px 40px;
+        }
+
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 900px) {
+            .classes-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+        }
+
+        .class-card {
+            background: linear-gradient(180deg,
+                rgba(0, 0, 0, 0.3) 0%,
+                rgba(0, 0, 0, 0.8) 100%);
+            border-radius: 12px;
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .class-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .class-card.philosopher::before { background: var(--philosopher-gold); }
+        .class-card.guardian::before { background: var(--guardian-red); }
+        .class-card.producer::before { background: var(--producer-bronze); }
+
+        .class-card.philosopher { border: 1px solid rgba(255, 215, 0, 0.3); }
+        .class-card.guardian { border: 1px solid rgba(192, 57, 43, 0.3); }
+        .class-card.producer { border: 1px solid rgba(139, 115, 85, 0.3); }
+
+        .class-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .class-card.philosopher:hover {
+            box-shadow: 0 20px 60px rgba(255, 215, 0, 0.2);
+            border-color: var(--philosopher-gold);
+        }
+        .class-card.guardian:hover {
+            box-shadow: 0 20px 60px rgba(192, 57, 43, 0.2);
+            border-color: var(--guardian-red);
+        }
+        .class-card.producer:hover {
+            box-shadow: 0 20px 60px rgba(139, 115, 85, 0.2);
+            border-color: var(--producer-bronze);
+        }
+
+        .class-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+        }
+
+        .class-card.philosopher h3 { color: var(--philosopher-gold); }
+        .class-card.guardian h3 { color: var(--guardian-red); }
+        .class-card.producer h3 { color: var(--producer-bronze); }
+
+        .class-card .en-name {
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+        }
+
+        .class-card p {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            line-height: 1.7;
+            margin-bottom: 30px;
+        }
+
+        .class-symbol {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .class-symbol svg {
+            width: 80%;
+            height: 80%;
+            opacity: 0.8;
+        }
+
+        .class-quote {
+            font-style: italic;
+            font-size: 0.9rem;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .class-card.philosopher .class-quote { color: var(--philosopher-gold); }
+        .class-card.guardian .class-quote { color: var(--guardian-red); }
+        .class-card.producer .class-quote { color: var(--producer-bronze); }
+
+        /* ==================== TIMELINE (哲学历程) ==================== */
+        #timeline {
+            background: linear-gradient(180deg,
+                var(--cave-black) 0%,
+                var(--indigo-deep) 50%,
+                var(--cave-black) 100%);
+            padding: 150px 40px;
+        }
+
+        .timeline-container {
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            margin-top: 60px;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom,
+                transparent,
+                var(--gold-dark) 10%,
+                var(--gold-dark) 90%,
+                transparent);
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 80px;
+            position: relative;
+        }
+
+        .timeline-item:nth-child(odd) {
+            flex-direction: row;
+        }
+
+        .timeline-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .timeline-date {
+            flex: 1;
+            text-align: right;
+            padding-right: 50px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--gold-pure);
+        }
+
+        .timeline-item:nth-child(even) .timeline-date {
+            text-align: left;
+            padding-right: 0;
+            padding-left: 50px;
+        }
+
+        .timeline-dot {
+            width: 20px;
+            height: 20px;
+            background: var(--gold-pure);
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 0 20px var(--gold-pure);
+            flex-shrink: 0;
+        }
+
+        .timeline-content {
+            flex: 1;
+            padding-left: 50px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            padding-left: 0;
+            padding-right: 50px;
+            text-align: right;
+        }
+
+        .timeline-content h3 {
+            font-size: 1.3rem;
+            color: var(--marble-white);
+            margin-bottom: 10px;
+        }
+
+        .timeline-content p {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .timeline-line {
+                left: 20px;
+            }
+            .timeline-item,
+            .timeline-item:nth-child(even) {
+                flex-direction: column;
+                align-items: flex-start;
+                padding-left: 50px;
+            }
+            .timeline-date,
+            .timeline-item:nth-child(even) .timeline-date {
+                text-align: left;
+                padding: 0;
+                margin-bottom: 10px;
+            }
+            .timeline-content,
+            .timeline-item:nth-child(even) .timeline-content {
+                padding: 0;
+                text-align: left;
+            }
+            .timeline-dot {
+                position: absolute;
+                left: 10px;
+            }
+        }
+
+        /* ==================== SOUL TEST (灵魂试炼) ==================== */
+        #soul-test {
+            background: var(--cave-black);
+            padding: 150px 40px;
+        }
+
+        .soul-test-container {
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .test-box {
+            width: 250px;
+            height: 250px;
+            margin: 60px auto;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .test-box:hover {
+            border-color: var(--gold-pure);
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.2);
+        }
+
+        .test-box:active {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .test-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .test-text {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+        }
+
+        .test-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: var(--gold-pure);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .soul-instruction {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            margin-top: 30px;
+        }
+
+        /* ==================== BOOKS (十卷总览) ==================== */
+        #books {
+            background: radial-gradient(ellipse at center,
+                var(--indigo-deep) 0%,
+                var(--cave-black) 100%);
+            padding: 150px 40px;
+        }
+
+        .books-wheel {
+            position: relative;
+            width: min(550px, 85vw);
+            height: min(550px, 85vw);
+            margin: 60px auto;
+        }
+
+        .books-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 140px;
+            height: 140px;
+            background: radial-gradient(circle,
+                var(--gold-pure) 0%,
+                var(--gold-dark) 100%);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 60px rgba(212, 175, 55, 0.4);
+            z-index: 10;
+        }
+
+        .books-center span {
+            font-size: 0.8rem;
+            color: var(--cave-black);
+        }
+
+        .books-center strong {
+            font-size: 2.5rem;
+            color: var(--cave-black);
+        }
+
+        .book-item {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            background: rgba(26, 26, 46, 0.9);
+            border: 1px solid var(--gold-dark);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            --angle: 0deg;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%)
+                       rotate(var(--angle))
+                       translateY(-200px)
+                       rotate(calc(-1 * var(--angle)));
+        }
+
+        .book-item:hover {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: var(--gold-pure);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+            transform: translate(-50%, -50%)
+                       rotate(var(--angle))
+                       translateY(-200px)
+                       rotate(calc(-1 * var(--angle)))
+                       scale(1.15);
+        }
+
+        .book-item:nth-child(2) { --angle: -90deg; }
+        .book-item:nth-child(3) { --angle: -54deg; }
+        .book-item:nth-child(4) { --angle: -18deg; }
+        .book-item:nth-child(5) { --angle: 18deg; }
+        .book-item:nth-child(6) { --angle: 54deg; }
+        .book-item:nth-child(7) { --angle: 90deg; }
+        .book-item:nth-child(8) { --angle: 126deg; }
+        .book-item:nth-child(9) { --angle: 162deg; }
+        .book-item:nth-child(10) { --angle: 198deg; }
+        .book-item:nth-child(11) { --angle: 234deg; }
+
+        .book-item .num {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--gold-pure);
+        }
+
+        .book-item .theme {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        /* ==================== RECOMMENDATIONS (相关典籍) ==================== */
+        #recommendations {
+            background: var(--cave-black);
+            padding: 150px 40px;
+        }
+
+        .reco-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .reco-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            letter-spacing: 0.2em;
+            margin-bottom: 60px;
+        }
+
+        .reco-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .reco-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+        }
+
+        .reco-card {
+            background: rgba(26, 26, 46, 0.4);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            border-radius: 8px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .reco-card:hover {
+            border-color: var(--gold-dark);
+            background: rgba(212, 175, 55, 0.05);
+            transform: translateY(-5px);
+        }
+
+        .reco-card h3 {
+            font-size: 1.3rem;
+            color: var(--gold-pure);
+            margin-bottom: 8px;
+        }
+
+        .reco-card .author {
+            font-size: 0.85rem;
+            color: var(--gold-dark);
+            margin-bottom: 15px;
+        }
+
+        .reco-card p {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        /* ==================== FOOTER ==================== */
+        footer {
+            background: var(--cave-black);
+            padding: 80px 40px;
+            text-align: center;
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
+        }
+
+        .footer-nav {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 25px 50px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .footer-nav:hover {
+            border-color: var(--gold-pure);
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .footer-nav .label {
+            font-size: 0.75rem;
+            color: var(--gold-dark);
+            letter-spacing: 0.2em;
+        }
+
+        .footer-nav .dest {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles"></canvas>
+
+    <div class="nav-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+    </div>
+
+    <div class="lang-toggle">
+        <span>EN</span>
+        <span>/</span>
+        <span class="active">中文</span>
+    </div>
+
+    <!-- HERO -->
+    <section id="hero">
+        <div class="hero-bg-glow"></div>
+        <div class="hero-content">
+            <p class="hero-greek">Π Ο Λ Ι Τ Ε Ι Α</p>
+            <h1 class="hero-title">
+                <span class="char">理</span>
+                <span class="char">想</span>
+                <span class="char">国</span>
+            </h1>
+            <p class="hero-author">柏 拉 图 · P L A T O</p>
+            <p class="hero-quote">"洞穴中的囚徒，只能看见墙上的影子。唯有挣脱锁链，转身面向光明，才能凝视真理的太阳。"</p>
+            <div class="scroll-indicator">
+                <span>下 滑 探 索</span>
+                <div class="line"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ARCHIVES -->
+    <section id="archives">
+        <div class="section-header">
+            <p class="section-tag">学 园 档 案 // 访 问 授 权</p>
+            <h2 class="section-title">智者殿堂</h2>
+            <p class="section-subtitle">The Academy Archives</p>
+        </div>
+        <div class="archives-grid">
+            <div class="archive-card">
+                <div class="archive-icon">🦉</div>
+                <h3>苏格拉底</h3>
+                <p class="subtitle">SOCRATES</p>
+                <p>西方哲学之父。以对话和诘问揭示无知，追求美德即知识的真理。</p>
+                <div class="archive-meta">
+                    <span>ID: SAGE_001</span>
+                    <span>STATUS: IMMORTAL</span>
+                </div>
+            </div>
+            <div class="archive-card">
+                <div class="archive-icon">📜</div>
+                <h3>柏拉图</h3>
+                <p class="subtitle">PLATO</p>
+                <p>理念论创始人。构建理想城邦，以哲学王治世，追求永恒不变的真实。</p>
+                <div class="archive-meta">
+                    <span>ID: SAGE_002</span>
+                    <span>STATUS: IMMORTAL</span>
+                </div>
+            </div>
+            <div class="archive-card">
+                <div class="archive-icon">🔬</div>
+                <h3>亚里士多德</h3>
+                <p class="subtitle">ARISTOTLE</p>
+                <p>百科全书式学者。师承柏拉图却走向经验，奠定逻辑学与科学基础。</p>
+                <div class="archive-meta">
+                    <span>ID: SAGE_003</span>
+                    <span>STATUS: IMMORTAL</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DIALECTIC -->
+    <section id="dialectic">
+        <div class="dialectic-header">
+            <div class="dialectic-title">
+                <div class="dot"></div>
+                <h2>辩证法推演</h2>
+            </div>
+            <div class="dialectic-status">
+                <span>逻各斯<span class="value">运行中</span></span>
+                <span>推演<span class="value">进行中</span></span>
+            </div>
+        </div>
+        <div class="dialectic-grid">
+            <div class="dialectic-card">
+                <div class="dialectic-card-header">
+                    <div>
+                        <h3>正义论</h3>
+                        <p class="tag">THEORY OF JUSTICE</p>
+                    </div>
+                    <div class="progress-ring">
+                        <svg viewBox="0 0 60 60">
+                            <circle class="bg" cx="30" cy="30" r="26"/>
+                            <circle class="progress" cx="30" cy="30" r="26"
+                                    stroke-dasharray="163.36" stroke-dashoffset="16"/>
+                        </svg>
+                        <span class="value">90%</span>
+                    </div>
+                </div>
+                <p>正义是城邦与灵魂的和谐。每个部分各司其职，理性统帅意气，节制欲望。</p>
+                <div class="data-stream">
+                    <span>DATA_STREAM_1</span>
+                    <span>PROCESSING...</span>
+                </div>
+            </div>
+            <div class="dialectic-card">
+                <div class="dialectic-card-header">
+                    <div>
+                        <h3>理念论</h3>
+                        <p class="tag">THEORY OF FORMS</p>
+                    </div>
+                    <div class="progress-ring">
+                        <svg viewBox="0 0 60 60">
+                            <circle class="bg" cx="30" cy="30" r="26"/>
+                            <circle class="progress" cx="30" cy="30" r="26"
+                                    stroke-dasharray="163.36" stroke-dashoffset="24"/>
+                        </svg>
+                        <span class="value">85%</span>
+                    </div>
+                </div>
+                <p>可感世界是理念的影子。真实存在于永恒不变的理念世界，善是最高理念。</p>
+                <div class="data-stream">
+                    <span>DATA_STREAM_2</span>
+                    <span>PROCESSING...</span>
+                </div>
+            </div>
+            <div class="dialectic-card">
+                <div class="dialectic-card-header">
+                    <div>
+                        <h3>政治哲学</h3>
+                        <p class="tag">POLITICAL PHILOSOPHY</p>
+                    </div>
+                    <div class="progress-ring">
+                        <svg viewBox="0 0 60 60">
+                            <circle class="bg" cx="30" cy="30" r="26"/>
+                            <circle class="progress" cx="30" cy="30" r="26"
+                                    stroke-dasharray="163.36" stroke-dashoffset="13"/>
+                        </svg>
+                        <span class="value">92%</span>
+                    </div>
+                </div>
+                <p>哲学家应成为国王。唯有认识善的理念者，才能治理城邦，引领众人走向光明。</p>
+                <div class="data-stream">
+                    <span>DATA_STREAM_3</span>
+                    <span>PROCESSING...</span>
+                </div>
+            </div>
+        </div>
+        <p class="dialectic-footer">推演完成。预计沉浸度：99.9%</p>
+    </section>
+
+    <!-- CAVE ALLEGORY -->
+    <section id="cave">
+        <div class="cave-content">
+            <h2 class="cave-title">洞 穴 之 喻</h2>
+            <p class="cave-subtitle">赞 颂 太 阳 与 真 理</p>
+            <div class="cave-rings">
+                <div class="cave-ring"></div>
+                <div class="cave-ring"></div>
+                <div class="cave-ring"></div>
+                <div class="cave-ring"></div>
+                <div class="cave-center"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CITY CLASSES -->
+    <section id="classes">
+        <div class="section-header">
+            <p class="section-tag">城 邦 结 构</p>
+            <h2 class="section-title">理想国阶层</h2>
+            <p class="section-subtitle">The Three Classes</p>
+        </div>
+        <div class="classes-grid">
+            <div class="class-card philosopher">
+                <h3>哲学王</h3>
+                <p class="en-name">PHILOSOPHER KINGS</p>
+                <div class="class-symbol">
+                    <svg viewBox="0 0 100 100" fill="none">
+                        <circle cx="50" cy="25" r="15" stroke="currentColor" stroke-width="2"/>
+                        <path d="M50 40 L50 70 M35 55 L65 55 M35 85 L50 70 L65 85" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <p>灵魂以理性为主。经五十年教育凝视善的理念，以智慧治理城邦。</p>
+                <p class="class-quote">"统治不是特权，而是责任。"</p>
+            </div>
+            <div class="class-card guardian">
+                <h3>护卫者</h3>
+                <p class="en-name">GUARDIANS</p>
+                <div class="class-symbol">
+                    <svg viewBox="0 0 100 100" fill="none">
+                        <path d="M50 10 L85 35 L85 70 L50 90 L15 70 L15 35 Z" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="50" cy="50" r="15" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <p>灵魂以意气为主。勇敢保卫城邦，执行哲学王的法令，维护秩序。</p>
+                <p class="class-quote">"荣誉高于生命。"</p>
+            </div>
+            <div class="class-card producer">
+                <h3>生产者</h3>
+                <p class="en-name">PRODUCERS</p>
+                <div class="class-symbol">
+                    <svg viewBox="0 0 100 100" fill="none">
+                        <rect x="30" y="25" width="40" height="50" stroke="currentColor" stroke-width="2"/>
+                        <path d="M20 75 L80 75 M50 25 L50 10 M40 10 L60 10" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <p>灵魂以欲望为主。节制自身，从事农工商业，供养城邦物质需求。</p>
+                <p class="class-quote">"各尽其职，各得其所。"</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- TIMELINE -->
+    <section id="timeline">
+        <div class="section-header">
+            <p class="section-tag">哲 学 史 年 鉴</p>
+            <h2 class="section-title">智慧之路</h2>
+            <p class="section-subtitle">The Path of Wisdom</p>
+        </div>
+        <div class="timeline-container">
+            <div class="timeline-line"></div>
+            <div class="timeline-item">
+                <div class="timeline-date">470 BC</div>
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>苏格拉底诞生</h3>
+                    <p>雅典石匠之子降生。日后将以诘问法撼动希腊思想根基。</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">428 BC</div>
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>柏拉图诞生</h3>
+                    <p>雅典贵族之后。将师承苏格拉底，构建西方哲学大厦。</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">399 BC</div>
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>苏格拉底之死</h3>
+                    <p>以"腐蚀青年"罪被处死。从容饮下毒芹，不朽于哲学史。</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">387 BC</div>
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>学园创立</h3>
+                    <p>柏拉图在雅典创建阿卡德米学园，西方第一所高等学府。</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">375 BC</div>
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>《理想国》著成</h3>
+                    <p>柏拉图完成巨著，探讨正义、城邦与灵魂的永恒问题。</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">347 BC</div>
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>柏拉图辞世</h3>
+                    <p>八十岁的哲学家安详离世，学园延续近千年。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SOUL TEST -->
+    <section id="soul-test">
+        <div class="soul-test-container">
+            <div class="section-header">
+                <p class="section-tag">灵 魂 试 炼</p>
+                <h2 class="section-title">认识你自己</h2>
+                <p class="section-subtitle">Know Thyself</p>
+            </div>
+            <div class="test-box" id="testBox">
+                <div class="test-icon">⚖️</div>
+                <p class="test-text">按 住 测 试</p>
+                <div class="test-progress" id="testProgress"></div>
+            </div>
+            <p class="soul-instruction">按住方盒，测试你的灵魂属于哪种类型。</p>
+        </div>
+    </section>
+
+    <!-- BOOKS -->
+    <section id="books">
+        <div class="section-header">
+            <p class="section-tag">十 卷 全 书</p>
+            <h2 class="section-title">理想国结构</h2>
+            <p class="section-subtitle">The Ten Books</p>
+        </div>
+        <div class="books-wheel">
+            <div class="books-center">
+                <span>共</span>
+                <strong>X</strong>
+                <span>卷</span>
+            </div>
+            <div class="book-item"><span class="num">I</span><span class="theme">正义之辩</span></div>
+            <div class="book-item"><span class="num">II</span><span class="theme">正义的挑战</span></div>
+            <div class="book-item"><span class="num">III</span><span class="theme">护卫者教育</span></div>
+            <div class="book-item"><span class="num">IV</span><span class="theme">四枢德</span></div>
+            <div class="book-item"><span class="num">V</span><span class="theme">妇女与哲王</span></div>
+            <div class="book-item"><span class="num">VI</span><span class="theme">善的理念</span></div>
+            <div class="book-item"><span class="num">VII</span><span class="theme">洞穴喻</span></div>
+            <div class="book-item"><span class="num">VIII</span><span class="theme">政体堕落</span></div>
+            <div class="book-item"><span class="num">IX</span><span class="theme">僭主之苦</span></div>
+            <div class="book-item"><span class="num">X</span><span class="theme">诗与灵魂</span></div>
+        </div>
+    </section>
+
+    <!-- RECOMMENDATIONS -->
+    <section id="recommendations">
+        <div class="reco-header">
+            <div class="section-header">
+                <p class="section-tag">相 关 典 籍</p>
+                <h2 class="section-title">其他对话录</h2>
+            </div>
+            <p class="reco-subtitle">未 走 之 路</p>
+        </div>
+        <div class="reco-grid">
+            <div class="reco-card">
+                <h3>会饮篇</h3>
+                <p class="author">柏拉图</p>
+                <p>"关于爱的本质的哲学探讨，从凡人之爱攀升至美本身。"</p>
+            </div>
+            <div class="reco-card">
+                <h3>斐多篇</h3>
+                <p class="author">柏拉图</p>
+                <p>"苏格拉底临终前对灵魂不朽的论证，哲学家应如何面对死亡。"</p>
+            </div>
+            <div class="reco-card">
+                <h3>申辩篇</h3>
+                <p class="author">柏拉图</p>
+                <p>"苏格拉底在法庭上的自我辩护：未经审视的人生不值得过。"</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <a href="#hero" class="footer-nav">
+            <span class="label">FOLD SPACE</span>
+            <span class="dest">DESTINATION: ACADEMY</span>
+        </a>
+    </footer>
+
+    <script>
+        // Particle System
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function createParticle() {
+            return {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 0.5,
+                speedY: -Math.random() * 0.3 - 0.1,
+                speedX: (Math.random() - 0.5) * 0.2,
+                opacity: Math.random() * 0.5 + 0.2
+            };
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 80; i++) {
+                particles.push(createParticle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach((p, i) => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+
+                if (p.y < 0) {
+                    particles[i] = createParticle();
+                    particles[i].y = canvas.height;
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(212, 175, 55, ${p.opacity})`;
+                ctx.fill();
+            });
+
+            requestAnimationFrame(animateParticles);
+        }
+
+        resizeCanvas();
+        initParticles();
+        animateParticles();
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            initParticles();
+        });
+
+        // Soul Test
+        const testBox = document.getElementById('testBox');
+        const testProgress = document.getElementById('testProgress');
+        let isHolding = false;
+        let progress = 0;
+        let holdInterval;
+
+        const soulTypes = [
+            { name: '理性灵魂', desc: '你追求真理与智慧，适合成为哲学家。', color: '#ffd700' },
+            { name: '意气灵魂', desc: '你崇尚荣誉与勇气，适合成为护卫者。', color: '#c0392b' },
+            { name: '欲望灵魂', desc: '你务实而节制，适合成为生产者。', color: '#8b7355' }
+        ];
+
+        function startTest() {
+            isHolding = true;
+            holdInterval = setInterval(() => {
+                if (progress < 100) {
+                    progress += 2;
+                    testProgress.style.width = progress + '%';
+                } else {
+                    endTest();
+                }
+            }, 30);
+        }
+
+        function endTest() {
+            clearInterval(holdInterval);
+            if (progress >= 100) {
+                const result = soulTypes[Math.floor(Math.random() * soulTypes.length)];
+                testBox.innerHTML = `
+                    <div style="color: ${result.color}; font-size: 1.5rem; margin-bottom: 15px;">${result.name}</div>
+                    <p style="color: var(--text-dim); font-size: 0.9rem;">${result.desc}</p>
+                `;
+                setTimeout(() => {
+                    testBox.innerHTML = `
+                        <div class="test-icon">⚖️</div>
+                        <p class="test-text">按 住 测 试</p>
+                        <div class="test-progress" id="testProgress"></div>
+                    `;
+                }, 4000);
+            }
+            progress = 0;
+            testProgress.style.width = '0%';
+            isHolding = false;
+        }
+
+        testBox.addEventListener('mousedown', startTest);
+        testBox.addEventListener('touchstart', startTest);
+        testBox.addEventListener('mouseup', endTest);
+        testBox.addEventListener('mouseleave', endTest);
+        testBox.addEventListener('touchend', endTest);
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.archive-card, .dialectic-card, .class-card, .timeline-item, .reco-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
