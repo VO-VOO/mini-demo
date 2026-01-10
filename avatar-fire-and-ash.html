@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阿凡达：火与灰 | 2025全球公映</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #050505;
+            overflow-x: hidden;
+        }
+
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ef4444;
+        }
+
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes ember {
+            0% { opacity: 0; transform: translateY(0) scale(0.5); }
+            50% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-100px) scale(0); }
+        }
+
+        .ember-particle {
+            position: absolute;
+            background: orangered;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: ember 4s linear infinite;
+        }
+
+        .hero-gradient {
+            background: radial-gradient(circle at center, rgba(20, 30, 60, 0.4) 0%, rgba(5, 5, 5, 1) 100%);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Lucide Icons as inline SVG components
+        const Play = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+        );
+
+        const Calendar = ({size = 16}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+        );
+
+        const Users = ({size = 18}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+        );
+
+        const Flame = ({size = 18, className = ""}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+            </svg>
+        );
+
+        const Droplets = ({size = 18, className = ""}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"></path>
+                <path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"></path>
+            </svg>
+        );
+
+        const ChevronDown = ({size = 32}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        );
+
+        const Menu = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        );
+
+        const X = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        );
+
+        const ArrowRight = ({size = 16}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+        );
+
+        const Ticket = ({size = 16}) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
+                <path d="M13 5v2"></path>
+                <path d="M13 17v2"></path>
+                <path d="M13 11v2"></path>
+            </svg>
+        );
+
+        // Mock Data
+        const characters = [
+            {
+                id: 1,
+                name: "Jake Sully",
+                role: "Omaticaya 领袖",
+                desc: "为了保护家人，他必须面对潘多拉星球上前所未见的黑暗势力。",
+                image: "https://images.unsplash.com/photo-1535905557558-afc4877a26fc?auto=format&fit=crop&q=80&w=800",
+                element: "water",
+                color: "text-blue-400"
+            },
+            {
+                id: 2,
+                name: "Neytiri",
+                role: "伟大的战士",
+                desc: "在那场毁灭性的战争后，她心中的复仇之火仍在燃烧。",
+                image: "https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?auto=format&fit=crop&q=80&w=800",
+                element: "water",
+                color: "text-blue-400"
+            },
+            {
+                id: 3,
+                name: "Varang",
+                role: "灰烬族 领袖",
+                desc: "极具魅力的反派，统治着崇拜火山与毁灭的'灰烬之民'。",
+                image: "https://images.unsplash.com/photo-1610212586774-361fa38568c0?auto=format&fit=crop&q=80&w=800",
+                element: "fire",
+                color: "text-red-500"
+            }
+        ];
+
+        const Nav = () => {
+            const [isScrolled, setIsScrolled] = useState(false);
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    setIsScrolled(window.scrollY > 50);
+                };
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            return (
+                <nav className={`fixed w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-black/90 backdrop-blur-md py-4 border-b border-white/10' : 'bg-transparent py-6'}`}>
+                    <div className="container mx-auto px-6 flex justify-between items-center">
+                        <div className="text-2xl font-cinzel font-bold tracking-widest text-white flex items-center gap-2">
+                            <span className="text-blue-500">AVATAR</span>
+                            <span className="text-red-600 text-sm align-top">•</span>
+                            <span className="text-gray-400 text-lg">FIRE AND ASH</span>
+                        </div>
+
+                        {/* Desktop Menu */}
+                        <div className="hidden md:flex gap-8 text-sm font-medium tracking-wider text-gray-300">
+                            <a href="#home" className="hover:text-red-500 transition-colors">首页</a>
+                            <a href="#story" className="hover:text-red-500 transition-colors">剧情</a>
+                            <a href="#characters" className="hover:text-red-500 transition-colors">角色</a>
+                            <a href="#gallery" className="hover:text-red-500 transition-colors">画廊</a>
+                        </div>
+
+                        <button className="hidden md:flex items-center gap-2 bg-gradient-to-r from-red-700 to-orange-600 px-6 py-2 rounded-full font-bold text-white hover:scale-105 transition-transform shadow-lg shadow-red-900/50">
+                            <Ticket size={16} />
+                            <span>预售登记</span>
+                        </button>
+
+                        {/* Mobile Menu Toggle */}
+                        <button className="md:hidden text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                            {isMenuOpen ? <X /> : <Menu />}
+                        </button>
+                    </div>
+
+                    {/* Mobile Menu */}
+                    {isMenuOpen && (
+                        <div className="absolute top-full left-0 w-full bg-black/95 backdrop-blur-xl border-b border-gray-800 p-6 flex flex-col gap-4 md:hidden">
+                            <a href="#home" className="text-white text-lg" onClick={() => setIsMenuOpen(false)}>首页</a>
+                            <a href="#story" className="text-white text-lg" onClick={() => setIsMenuOpen(false)}>剧情</a>
+                            <a href="#characters" className="text-white text-lg" onClick={() => setIsMenuOpen(false)}>角色</a>
+                            <button className="w-full bg-red-600 py-3 rounded text-white font-bold mt-4">预售登记</button>
+                        </div>
+                    )}
+                </nav>
+            );
+        };
+
+        const Hero = () => {
+            return (
+                <section id="home" className="relative h-screen w-full flex items-center justify-center overflow-hidden">
+                    {/* Background Layer with Dual Tone */}
+                    <div className="absolute inset-0 z-0">
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-black to-red-950 opacity-90"></div>
+                        <img
+                            src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop"
+                            className="w-full h-full object-cover opacity-40 mix-blend-overlay"
+                            alt="Space Background"
+                        />
+                        {/* Simulated Particles/Embers */}
+                        <div className="absolute inset-0 pointer-events-none">
+                            {[...Array(20)].map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="ember-particle"
+                                    style={{
+                                        left: `${Math.random() * 100}%`,
+                                        top: `${Math.random() * 100}%`,
+                                        width: `${Math.random() * 6 + 2}px`,
+                                        height: `${Math.random() * 6 + 2}px`,
+                                        animationDelay: `${Math.random() * 5}s`,
+                                        opacity: Math.random() * 0.5
+                                    }}
+                                ></div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+                        <p className="text-blue-300 tracking-[0.5em] mb-4 text-sm md:text-base animate-pulse uppercase">James Cameron 作品</p>
+
+                        <h1 className="font-cinzel text-5xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-red-500 mb-6 drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+                            AVATAR<br/>
+                            <span className="text-3xl md:text-6xl text-gray-200 mt-2 block">FIRE AND ASH</span>
+                        </h1>
+
+                        <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+                            并非所有的纳美人都向往和平。<br/>
+                            当<span className="text-blue-400 font-bold">深海</span>遭遇<span className="text-red-500 font-bold">烈火</span>，潘多拉的阴暗面即将揭晓。
+                        </p>
+
+                        <div className="flex flex-col md:flex-row gap-6 justify-center items-center">
+                            <button className="group relative px-8 py-4 bg-transparent border border-white/30 text-white rounded hover:bg-white/10 transition-all overflow-hidden">
+                                <span className="relative z-10 flex items-center gap-3">
+                                    <Play /> 观看预告片
+                                </span>
+                                <div className="absolute inset-0 bg-blue-600/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                            </button>
+                            <div className="text-gray-400 flex items-center gap-2 text-sm border-l border-gray-700 pl-6">
+                                <Calendar size={16}/>
+                                2025年12月19日 全球公映
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/30 animate-bounce">
+                        <ChevronDown size={32} />
+                    </div>
+                </section>
+            );
+        };
+
+        const StorySection = () => {
+            return (
+                <section id="story" className="py-24 bg-black relative">
+                    <div className="absolute left-0 top-0 w-1/3 h-full bg-gradient-to-r from-red-900/10 to-transparent pointer-events-none"></div>
+
+                    <div className="container mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+                        <div className="relative group">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-orange-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                            <img
+                                src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1000&auto=format&fit=crop"
+                                alt="Volcanic Landscape"
+                                className="relative rounded-lg shadow-2xl grayscale group-hover:grayscale-0 transition-all duration-700 object-cover h-[500px] w-full"
+                            />
+                            <div className="absolute bottom-6 left-6 text-white bg-black/60 backdrop-blur px-4 py-2 border-l-4 border-red-500">
+                                <h3 className="font-bold">灰烬之地</h3>
+                                <p className="text-xs text-gray-300">未知领土 · 高危区域</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <Flame className="text-red-500" />
+                                <span className="text-red-500 tracking-widest font-bold uppercase text-sm">全新篇章</span>
+                            </div>
+                            <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 leading-tight">
+                                面对<span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-800">灰烬族</span>的怒火
+                            </h2>
+                            <p className="text-gray-400 text-lg mb-6 leading-relaxed">
+                                杰克·萨利和奈蒂莉不仅要面对天空人的卷土重来，更要遭遇潘多拉星球本土最危险的威胁——灰烬族（The Ash People）。
+                            </p>
+                            <p className="text-gray-400 text-lg mb-8 leading-relaxed">
+                                与向往和平的森林与海洋部落不同，这个居住在火山地带的纳美部族崇尚暴力与力量。在火与灰的试炼中，善与恶的界限将变得模糊。
+                            </p>
+
+                            <ul className="space-y-4 mb-8">
+                                <li className="flex items-center gap-4 text-gray-300">
+                                    <span className="w-12 h-[1px] bg-red-500"></span>
+                                    探索潘多拉全新的火山生态系统
+                                </li>
+                                <li className="flex items-center gap-4 text-gray-300">
+                                    <span className="w-12 h-[1px] bg-blue-500"></span>
+                                    家族纽带将在战火中接受终极考验
+                                </li>
+                                <li className="flex items-center gap-4 text-gray-300">
+                                    <span className="w-12 h-[1px] bg-white"></span>
+                                    不仅是战争，更是关于生存哲学的碰撞
+                                </li>
+                            </ul>
+
+                            <button className="text-white border-b border-red-500 pb-1 hover:text-red-400 transition-colors flex items-center gap-2">
+                                阅读完整剧情简介 <ArrowRight size={16} />
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const Characters = () => {
+            return (
+                <section id="characters" className="py-24 bg-gradient-to-b from-black to-slate-900">
+                    <div className="container mx-auto px-6">
+                        <div className="text-center mb-16">
+                            <h2 className="text-4xl font-bold text-white mb-4">两大阵营</h2>
+                            <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-red-500 mx-auto rounded-full"></div>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-8">
+                            {characters.map((char) => (
+                                <div key={char.id} className="group relative bg-gray-900 rounded-xl overflow-hidden hover:-translate-y-2 transition-transform duration-500 shadow-2xl">
+                                    <div className="absolute top-4 right-4 z-20">
+                                        {char.element === 'water' ?
+                                            <Droplets className="text-blue-400 drop-shadow-lg" /> :
+                                            <Flame className="text-red-500 drop-shadow-lg" />
+                                        }
+                                    </div>
+
+                                    <div className="h-96 overflow-hidden relative">
+                                        <div className={`absolute inset-0 bg-gradient-to-t ${char.element === 'water' ? 'from-blue-900/80' : 'from-red-900/80'} to-transparent opacity-60 z-10`}></div>
+                                        <img
+                                            src={char.image}
+                                            alt={char.name}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                        />
+                                    </div>
+
+                                    <div className="p-8 relative z-20 -mt-20">
+                                        <h3 className={`text-3xl font-cinzel font-bold mb-1 ${char.color}`}>{char.name}</h3>
+                                        <p className="text-white/60 text-sm uppercase tracking-widest mb-4">{char.role}</p>
+                                        <p className="text-gray-300 text-sm leading-relaxed border-t border-gray-700 pt-4">
+                                            {char.desc}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const Gallery = () => {
+            return (
+                <section id="gallery" className="py-24 bg-black">
+                    <div className="container mx-auto px-6">
+                        <div className="flex justify-between items-end mb-12">
+                            <div>
+                                <h2 className="text-4xl font-bold text-white mb-2">视觉盛宴</h2>
+                                <p className="text-gray-500">早期概念图与剧照</p>
+                            </div>
+                            <button className="hidden md:block px-6 py-2 border border-gray-700 text-gray-300 rounded hover:bg-gray-800 transition-colors">
+                                查看全部
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[200px]">
+                            <div className="md:col-span-2 md:row-span-2 relative group overflow-hidden rounded-lg cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=1200" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Scene 1" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span className="text-white font-cinzel tracking-widest text-xl border border-white/50 px-4 py-2">FIRE</span>
+                                </div>
+                            </div>
+                            <div className="relative group overflow-hidden rounded-lg cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Scene 2" />
+                            </div>
+                            <div className="relative group overflow-hidden rounded-lg cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Scene 3" />
+                            </div>
+                            <div className="md:col-span-2 relative group overflow-hidden rounded-lg cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1464802686167-b939a6910659?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Scene 4" />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const Footer = () => {
+            return (
+                <footer className="bg-slate-950 border-t border-slate-900 text-gray-400 py-16">
+                    <div className="container mx-auto px-6">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+                            <div className="text-center md:text-left">
+                                <h2 className="font-cinzel text-2xl text-white mb-2">AVATAR: FIRE AND ASH</h2>
+                                <p className="text-sm">© 2025 20th Century Studios. All Rights Reserved.</p>
+                            </div>
+
+                            <div className="flex gap-8 text-sm">
+                                <a href="#" className="hover:text-white transition-colors">隐私政策</a>
+                                <a href="#" className="hover:text-white transition-colors">使用条款</a>
+                                <a href="#" className="hover:text-white transition-colors">媒体中心</a>
+                            </div>
+
+                            <div className="flex gap-4">
+                                {/* Social placeholders */}
+                                <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors cursor-pointer">
+                                    <Users size={18} />
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors cursor-pointer">
+                                    <Flame size={18} />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="mt-12 text-center text-xs text-slate-600">
+                            本网站为粉丝概念设计，非官方网站。<br/>
+                            所用图片均为占位图，版权归原作者所有。
+                        </div>
+                    </div>
+                </footer>
+            );
+        };
+
+        const App = () => {
+            return (
+                <div className="min-h-screen">
+                    <Nav />
+                    <Hero />
+                    <StorySection />
+                    <Characters />
+                    <Gallery />
+                    <Footer />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
