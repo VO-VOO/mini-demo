@@ -210,12 +210,12 @@
     </div>
 
     <script type="module">
-        import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-        import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
-        import { EffectComposer } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/RenderPass.js';
-        import { UnrealBloomPass } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/UnrealBloomPass.js';
-        import { OutputPass } from 'https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/OutputPass.js';
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
         // --- Configuration ---
         const CONFIG = {
@@ -298,8 +298,8 @@
             buildingGlass: new THREE.MeshStandardMaterial({ color: 0x88ccff, roughness: 0.1, metalness: 0.8 }),
             windowLight: new THREE.MeshStandardMaterial({ color: 0xffddaa, emissive: 0xffddaa, emissiveIntensity: 0 }),
             carBody: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2, metalness: 0.5 }),
-            headlight: new THREE.MeshBasicMaterial({ color: 0xffffff }),
-            taillight: new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+            headlight: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1.0, depthWrite: false }),
+            taillight: new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 1.0, depthWrite: false }),
             ship: new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.6 }),
             container: new THREE.MeshStandardMaterial({ color: 0x2244aa, roughness: 0.5 })
         };
@@ -440,7 +440,7 @@
         // Simple voxel terrain generation
         function createTerrainChunk(centerX, zRange, heightScale, color) {
             const instancedGeo = new THREE.BoxGeometry(1, 1, 1);
-            const material = materials.terrain;
+            const material = new THREE.MeshStandardMaterial({ color, roughness: 1.0 });
             const count = 400;
             const mesh = new THREE.InstancedMesh(instancedGeo, material, count);
             const dummy = new THREE.Object3D();
@@ -814,6 +814,15 @@
         const clock = new THREE.Clock();
         const fpsCounter = document.getElementById('fps-counter');
 
+        // FPS sampling (stable)
+        let fpsAccumTime = 0;
+        let fpsFrames = 0;
+
+        // Temp vectors to avoid GC in hot loops
+        const tmpVec1 = new THREE.Vector3();
+        const tmpVec2 = new THREE.Vector3();
+        const birdsCenter = new THREE.Vector3(0, 150, 0);
+
         function animate() {
             requestAnimationFrame(animate);
 
@@ -889,11 +898,10 @@
             });
 
             // 7. Birds
-            const center = new THREE.Vector3(0, 150, 0);
             birds.forEach((bird, i) => {
                 // Simple Boid-like: attract to center, avoid others slightly, add noise
-                const toCenter = center.clone().sub(bird.pos).multiplyScalar(0.001);
-                bird.vel.add(toCenter);
+                tmpVec1.copy(birdsCenter).sub(bird.pos).multiplyScalar(0.001);
+                bird.vel.add(tmpVec1);
 
                 // Add noise
                 bird.vel.x += (Math.random() - 0.5) * 0.01;
@@ -907,7 +915,8 @@
 
                 // Orient
                 bird.dummy.position.copy(bird.pos);
-                bird.dummy.lookAt(bird.pos.clone().add(bird.vel));
+                tmpVec2.copy(bird.pos).add(bird.vel);
+                bird.dummy.lookAt(tmpVec2);
                 bird.dummy.updateMatrix();
                 birdMesh.setMatrixAt(i, bird.dummy.matrix);
             });
@@ -930,9 +939,13 @@
             controls.update();
             composer.render();
 
-            // FPS Update (rough)
-            if (Math.random() > 0.95) {
-                fpsCounter.innerText = Math.round(1 / delta) + " FPS";
+            // FPS Update (stable, 2x/sec)
+            fpsAccumTime += delta;
+            fpsFrames += 1;
+            if (fpsAccumTime >= 0.5) {
+                fpsCounter.innerText = Math.round(fpsFrames / fpsAccumTime) + " FPS";
+                fpsAccumTime = 0;
+                fpsFrames = 0;
             }
         }
 

@@ -464,16 +464,16 @@
         tileSize: 10,
         colors: {
           // 1. 棋子本身颜色 (极高对比度)
-          whitePiece: 0xffffff, // 纯白色，最大可见度
-          blackPiece: 0x0a0a0a, // 深黑色，但不是纯黑
+          whitePiece: 0xffffff, // 纯白色
+          blackPiece: 0x111111, // 深黑色
 
-          // 2. 增强的自发光
-          whiteEmissive: 0xffffdd, // 明亮暖白光
-          blackEmissive: 0x3366ff, // 明亮蓝光
+          // 2. 增强的自发光 - 优化颜色以提高建模清晰度
+          whiteEmissive: 0x0066aa, // 柔和的淡蓝色 (Wizard White)
+          blackEmissive: 0x4400aa, // 深邃的紫罗兰色 (Dark Arts)
 
-          // 3. 棋盘颜色 (高对比度)
-          whiteTile: 0xf5f5f5, // 几乎纯白的浅色格
-          blackTile: 0x6688aa, // 明亮的蓝灰色
+          // 3. 棋盘颜色 (清晰黑白对比，无发光)
+          whiteTile: 0xdddddd, // 亮灰白
+          blackTile: 0x222222, // 深灰
 
           highlight: 0x00ff00,
           selected: 0xffaa00,
@@ -535,7 +535,7 @@
           scene = new THREE.Scene();
           const bgColor = 0x0b1015;
           scene.background = new THREE.Color(bgColor);
-          scene.fog = new THREE.FogExp2(bgColor, 0.012);
+          scene.fog = new THREE.FogExp2(bgColor, 0.002);
 
           // 2. 摄像机
           camera = new THREE.PerspectiveCamera(
@@ -552,23 +552,24 @@
           renderer.shadowMap.enabled = true;
           renderer.shadowMap.type = THREE.PCFSoftShadowMap;
           renderer.toneMapping = THREE.ACESFilmicToneMapping;
-          // 提高曝光度以获得更明亮的场景
-          renderer.toneMappingExposure = 1.6;
+          renderer.outputEncoding = THREE.sRGBEncoding;
+          // 提高曝光度以补偿降低的自发光
+          renderer.toneMappingExposure = 1.2;
           document
             .getElementById("game-container")
             .appendChild(renderer.domElement);
 
-          // 4. 灯光系统 - 全面改进
-          // 环境光 - 提高基础亮度
-          const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+          // 4. 灯光系统 - 调整为暗黑风格，突出棋子自发光
+          // 环境光 - 降低基础亮度
+          const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
           scene.add(ambientLight);
 
-          // 半球光 - 顶部天光（增强）
-          const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
+          // 半球光 - 降低强度
+          const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.3);
           hemiLight.position.set(0, 100, 0);
           scene.add(hemiLight);
 
-          // 顶部主灯 - 增强主光源
+          // 顶部主灯 - 提高强度以照亮棋子顶部细节
           const topLight = new THREE.PointLight(0xffffff, 1.2, 350);
           topLight.position.set(0, 80, 0);
           topLight.castShadow = true;
@@ -577,11 +578,11 @@
           topLight.shadow.radius = 4;
           scene.add(topLight);
 
-          // --- 四角补光系统（增强） ---
+          // --- 四角补光系统（大幅降低强度） ---
           const cornerDist = 60;
           const cornerHeight = 50;
-          const cornerIntensity = 1.0; // 提高补光强度
-          const lightDistance = 250; // 扩大照射范围
+          const cornerIntensity = 0.2; // 降低补光强度
+          const lightDistance = 250; 
 
           // 右下角 (暖色调)
           const lightRB = new THREE.PointLight(
@@ -619,24 +620,24 @@
           lightRT.position.set(cornerDist, cornerHeight, -cornerDist);
           scene.add(lightRT);
 
-          // --- 屏幕外柔和光源（新增） ---
+          // --- 屏幕外柔和光源（降低） ---
           // 前方柔光（面向玩家）
-          const frontLight = new THREE.DirectionalLight(0xffffff, 0.4);
+          const frontLight = new THREE.DirectionalLight(0xffffff, 0.1);
           frontLight.position.set(0, 40, 100); // 屏幕外前方
           scene.add(frontLight);
 
-          // 后方柔光
-          const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
-          backLight.position.set(0, 40, -100); // 屏幕外后方
+          // 后方轮廓光 (Rim Light) - 增强强度以勾勒棋子边缘
+          const backLight = new THREE.DirectionalLight(0xaaccff, 1.0); // 提高强度并添加冷色调
+          backLight.position.set(0, 50, -100); // 调整位置优化轮廓效果
           scene.add(backLight);
 
           // 左侧柔光
-          const leftLight = new THREE.DirectionalLight(0xffffff, 0.3);
+          const leftLight = new THREE.DirectionalLight(0xffffff, 0.1);
           leftLight.position.set(-100, 40, 0); // 屏幕外左侧
           scene.add(leftLight);
 
           // 右侧柔光
-          const rightLight = new THREE.DirectionalLight(0xffffff, 0.3);
+          const rightLight = new THREE.DirectionalLight(0xffffff, 0.1);
           rightLight.position.set(100, 40, 0); // 屏幕外右侧
           scene.add(rightLight);
 
@@ -651,10 +652,10 @@
 
           // 7. 监听
           window.addEventListener("resize", onWindowResize, false);
-          document.addEventListener("mousedown", onMouseDown, false);
-          document.addEventListener("mousemove", onMouseMove, false);
-          document.addEventListener("mouseup", onMouseUp, false);
-          document.addEventListener("wheel", onWheel, false);
+          renderer.domElement.addEventListener("mousedown", onMouseDown, false);
+          renderer.domElement.addEventListener("mousemove", onMouseMove, false);
+          renderer.domElement.addEventListener("mouseup", onMouseUp, false);
+          renderer.domElement.addEventListener("wheel", onWheel, { passive: false });
           document.addEventListener("contextmenu", (event) =>
             event.preventDefault()
           );
@@ -721,10 +722,10 @@
           emissive: isWhite
             ? CONFIG.colors.whiteEmissive
             : CONFIG.colors.blackEmissive,
-          // 增强自发光，提高可见度
-          emissiveIntensity: 0.8,
-          roughness: 0.3, // 增加反光
-          metalness: 0.5,
+          // 优化材质参数：降低自发光以免掩盖细节，增强高光
+          emissiveIntensity: 0.6, // 降低强度 (原 1.5)
+          roughness: 0.15, // 降低粗糙度，增加质感
+          metalness: 0.7, // 提高金属度，增强反射
           flatShading: true,
         });
 
@@ -799,7 +800,7 @@
           particleMaterialCache[colorHex] = new THREE.MeshStandardMaterial({
             color: colorHex,
             emissive: colorHex,
-            emissiveIntensity: 0.5,
+            emissiveIntensity: 1.5,
             roughness: 0.8,
           });
         }
@@ -910,12 +911,19 @@
       }
 
       // 检查某个格子是否被指定颜色攻击
-      function isSquareAttacked(r, c, byColor) {
+      // skipR, skipC: 跳过检查指定位置的棋子（用于防止递归）
+      function isSquareAttacked(r, c, byColor, skipR = -1, skipC = -1) {
         // 检查所有对方棋子，看是否能攻击到这个格子
         for (let fr = 0; fr < 8; fr++) {
           for (let fc = 0; fc < 8; fc++) {
+            // 跳过指定位置的棋子
+            if (fr === skipR && fc === skipC) continue;
+
             const piece = gameState.board[fr][fc];
             if (piece && piece.color === byColor) {
+              // 跳过国王，防止递归
+              if (piece.type === "king") continue;
+
               const moves = getPseudoLegalMoves(fr, fc, piece);
               if (moves.some((m) => m.r === r && m.c === c)) {
                 return true;
@@ -1187,8 +1195,9 @@
         }
         if (gameState.gameOver || gameState.isAnimating) return;
 
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
         raycaster.setFromCamera(mouse, camera);
 
@@ -1228,7 +1237,7 @@
         mesh.children.forEach((child) => {
           if (child.material) {
             child.material.emissive.setHex(0xffaa00);
-            child.material.emissiveIntensity = 1.2; // 选中时增加自发光
+            child.material.emissiveIntensity = 2.5; // 选中时增加自发光
           }
         });
         const moves = getValidMoves(
@@ -1263,7 +1272,7 @@
           gameState.selectedPiece.children.forEach((child) => {
             if (child.material) {
               child.material.emissive.setHex(child.userData.originalEmissive);
-              child.material.emissiveIntensity = 0.8; // 恢复自发光
+              child.material.emissiveIntensity = 1.5; // 恢复自发光
             }
           });
         }
