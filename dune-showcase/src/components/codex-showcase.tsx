@@ -1,6 +1,54 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+
+const AnimatedNumber = ({ value }: { value: string }) => {
+  const [count, setCount] = useState("0");
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const targetMatch = value.match(/\d+/);
+    if (!targetMatch) {
+      setCount(value);
+      return;
+    }
+    const targetStr = targetMatch[0];
+    const target = parseInt(targetStr, 10);
+    const prefix = value.substring(0, targetMatch.index);
+    const suffix = value.substring(targetMatch.index! + targetStr.length);
+
+    // Initial state before intersection
+    setCount(`${prefix}0${suffix}`);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          let current = 0;
+          const duration = 1500;
+          const intervalMs = Math.max(16, Math.floor(duration / target));
+          const stepSize = Math.max(1, Math.ceil(target / (duration / 16)));
+          
+          const timer = setInterval(() => {
+            current += stepSize;
+            if (current >= target) {
+              current = target;
+              clearInterval(timer);
+            }
+            setCount(`${prefix}${current}${suffix}`);
+          }, intervalMs);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [value]);
+
+  return <span ref={ref} className="animated-number">{count}</span>;
+};
 
 const navItems = [
   { label: "能力", href: "#capabilities" },
@@ -46,6 +94,7 @@ const featureStories = [
     copy:
       "全局扫描代码库，充分尊重现有架构，在不破坏任何原有效率的前提下完成集成式修补。",
     points: ["思考早于敲击", "全盘保留架构", "杜绝破坏性变更"],
+    visualType: "terminal-python",
   },
   {
     eyebrow: "严酷执行法则",
@@ -53,6 +102,7 @@ const featureStories = [
     copy:
       "从修补到验证，Codex 步步为营。用绝对真实的代码编译，硬核自证每个推理环节的坚不可摧。",
     points: ["跑动真实指令", "状态全程透明", "迎面击破阻塞"],
+    visualType: "terminal-bun",
   },
 ];
 
@@ -169,6 +219,14 @@ export const CodexShowcase = () => {
     };
   }, []);
 
+  const handleCardMove = (e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+    e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
+  };
+
   useEffect(() => {
     const root = rootRef.current;
     if (!root) {
@@ -210,7 +268,8 @@ export const CodexShowcase = () => {
             </span>
             <p className="eyebrow">新一代软件智能交付</p>
             <h1 className="hero-title">
-              读懂逻辑，精准重构。<br />每行代码，自带验证。
+              <span className="stagger-reveal" style={{ animationDelay: '0.1s' }}>读懂逻辑，精准重构。</span><br />
+              <span className="stagger-reveal" style={{ animationDelay: '0.3s' }}>每行代码，自带验证。</span>
             </h1>
             <p className="hero-body">
               为应对硬核工程挑战而生。它长驱直入代码深水区，精准捕捉逻辑锚点。
@@ -228,7 +287,7 @@ export const CodexShowcase = () => {
               {heroStats.map((item) => (
                 <article key={item.label} className="metric-card liquid-glass">
                   <span>{item.label}</span>
-                  <strong>{item.value}</strong>
+                  <strong><AnimatedNumber value={item.value} /></strong>
                 </article>
               ))}
             </div>
@@ -286,7 +345,7 @@ export const CodexShowcase = () => {
 
           <div className="workflow-grid">
             {workflowSteps.map((step) => (
-              <article className="workflow-card liquid-glass" key={step.index} data-reveal>
+              <article className="workflow-card liquid-glass spotlight-card" key={step.index} data-reveal onMouseMove={handleCardMove}>
                 <span className="workflow-index">{step.index}</span>
                 <h3>{step.title}</h3>
                 <p>{step.copy}</p>
@@ -311,11 +370,50 @@ export const CodexShowcase = () => {
               <div className="story-visual liquid-glass-strong" aria-hidden="true">
                 <div className="visual-lines" />
                 <div className="visual-orb" />
-                <div className="visual-terminal">
-                  <span>$ scan workspace</span>
-                  <span>$ patch target module</span>
-                  <span>$ run build</span>
-                </div>
+                
+                {story.visualType === "terminal-python" && (
+                  <div className="mockup-window">
+                    <div className="mockup-header">
+                      <span className="mockup-dot dot-red" />
+                      <span className="mockup-dot dot-yellow" />
+                      <span className="mockup-dot dot-green" />
+                      <span className="mockup-title">bash — 架构扫描</span>
+                    </div>
+                    <div className="mockup-body">
+                      <div>$ uv run ruff check .</div>
+                      <div><span className="token-dim">➤ Scanning 340 Python files...</span></div>
+                      <div><span className="token-success">✔ Found 0 errors. Code is clean.</span></div>
+                      <br />
+                      <div>$ uv run pytest --collect-only</div>
+                      <div><span className="token-dim">➤ Resolving dependencies...</span></div>
+                      <div><span className="token-keyword">Collected 84 items</span></div>
+                      <br />
+                      <div><span className="token-string">✨ Context loaded. Ready for patching.</span></div>
+                    </div>
+                  </div>
+                )}
+
+                {story.visualType === "terminal-bun" && (
+                  <div className="mockup-window">
+                    <div className="mockup-header">
+                      <span className="mockup-dot dot-red" />
+                      <span className="mockup-dot dot-yellow" />
+                      <span className="mockup-dot dot-green" />
+                      <span className="mockup-title">bash — 执行检测</span>
+                    </div>
+                    <div className="mockup-body">
+                      <div>$ bun run build</div>
+                      <div><span className="token-dim">➤ Building Next.js application...</span></div>
+                      <div><span className="token-success">✓ Compiled successfully in 12.4s</span></div>
+                      <br />
+                      <div>$ bun run test:e2e</div>
+                      <div><span className="token-dim">➤ Running 142 integration tests...</span></div>
+                      <div><span className="token-success">✓ All tests passed zero warnings</span></div>
+                      <br />
+                      <div><span className="token-string">✨ Patch verified and ready for deployment.</span></div>
+                    </div>
+                  </div>
+                )}
               </div>
             </article>
           ))}
@@ -333,7 +431,7 @@ export const CodexShowcase = () => {
 
           <div className="capability-grid">
             {capabilityCards.map((item) => (
-              <article className="capability-card liquid-glass" key={item.title} data-reveal>
+              <article className="capability-card liquid-glass spotlight-card" key={item.title} data-reveal onMouseMove={handleCardMove}>
                 <div className="capability-icon" aria-hidden="true" />
                 <h3>{item.title}</h3>
                 <p>{item.copy}</p>
@@ -346,7 +444,7 @@ export const CodexShowcase = () => {
           <div className="stats-shell liquid-glass-strong">
             {signalStats.map((item) => (
               <article key={item.label}>
-                <strong>{item.value}</strong>
+                <strong><AnimatedNumber value={item.value} /></strong>
                 <span>{item.label}</span>
               </article>
             ))}
@@ -365,7 +463,7 @@ export const CodexShowcase = () => {
 
           <div className="testimonial-grid">
             {testimonials.map((testimonial) => (
-              <article className="testimonial-card liquid-glass" key={testimonial.name} data-reveal>
+              <article className="testimonial-card liquid-glass spotlight-card" key={testimonial.name} data-reveal onMouseMove={handleCardMove}>
                 <p className="testimonial-quote">“{testimonial.quote}”</p>
                 <strong>{testimonial.name}</strong>
                 <span>{testimonial.role}</span>
