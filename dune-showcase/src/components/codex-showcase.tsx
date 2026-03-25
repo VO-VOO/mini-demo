@@ -11,9 +11,9 @@ const navItems = [
 ];
 
 const heroStats = [
-  { label: "协同层级", value: "4-layer reasoning" },
-  { label: "首个补丁时间", value: "< 10 分钟" },
-  { label: "接入界面", value: "CLI · Web · API" },
+  { label: "推理层级", value: "四维深度解析" },
+  { label: "首次交付", value: "< 10 分钟" },
+  { label: "无缝接入", value: "CLI · Web · API" },
 ];
 
 const partnerNames = ["OpenAI", "GitHub", "Notion", "Canva", "Playwright"];
@@ -21,83 +21,83 @@ const partnerNames = ["OpenAI", "GitHub", "Notion", "Canva", "Playwright"];
 const workflowSteps = [
   {
     index: "01",
-    title: "先读 codebase",
+    title: "先洞察，后行动",
     copy:
-      "Codex 先检查真实项目状态，再开始推理与修改，而不是先套一个通用模板上去。",
+      "拒绝盲目套用模板。Codex 将深入分析真实项目状态，以此为基石展开推理。",
   },
   {
     index: "02",
-    title: "跨工具推理",
+    title: "跨工具无缝协作",
     copy:
-      "Terminal 命令、代码补丁、浏览器自动化、MCP apps 和 web 验证会被组合进同一个工作闭环。",
+      "将终端、浏览器自动化与代码环境悉数整合，构建统一稳固的执行闭环。",
   },
   {
     index: "03",
-    title: "带着验证交付",
+    title: "验证级可靠交付",
     copy:
-      "它不会停在分析阶段，而是继续编辑、构建、测试，并用明确的文件引用交代最终结果。",
+      "不止于静态推理，更以真实编译与测试为凭，交付每一处确凿无误的代码。",
   },
 ];
 
 const featureStories = [
   {
-    eyebrow: "上下文引擎",
-    title: "一个从真实状态出发，而不是从想象状态出发的 coding agent。",
+    eyebrow: "绝佳全局视野",
+    title: "立足真实状态，告别盲目揣测。",
     copy:
-      "Codex 会先读取 workspace，尊重现有架构，留意脏文件，并在不把 repo 压平成样板代码的前提下完成集成式修改。",
-    points: ["先读后写", "保留既有模式", "避免破坏性 git 操作"],
+      "全局扫描代码库，充分尊重现有架构，在不破坏任何原有效率的前提下完成集成式修补。",
+    points: ["思考早于敲击", "全盘保留架构", "杜绝破坏性变更"],
   },
   {
-    eyebrow: "执行纪律",
-    title: "只有经得住 build 检验的推理，才算真正有用。",
+    eyebrow: "严酷执行法则",
+    title: "唯有经得起编译的代码，才称得上有用。",
     copy:
-      "从生成 patch 到完成验证，Codex 会一直卡住关键路径推进，并在可能的情况下用编译级证据把闭环收住。",
-    points: ["运行真实命令", "持续同步进展", "阻塞点直接暴露，不掩盖"],
+      "从修补到验证，Codex 步步为营。用绝对真实的代码编译，硬核自证每个推理环节的坚不可摧。",
+    points: ["跑动真实指令", "状态全程透明", "迎面击破阻塞"],
   },
 ];
 
 const capabilityCards = [
   {
-    title: "理解 codebase",
-    copy: "在提出修改前先理解现有文件、命名方式、技术栈约定和本地限制。",
+    title: "深层洞悉",
+    copy: "动手之前，先透彻理解项目文件、组件命名、技术栈边界与本地限制。",
   },
   {
-    title: "多工具协同",
-    copy: "把 shell、browser、apps、文档检索和结构化编辑整合进一个连贯的工作会话里。",
+    title: "全栈通览",
+    copy: "将 Shell 终端、浏览器及全系列研发工具链，完美融入一条连贯的协同流。",
   },
   {
-    title: "验证优先",
-    copy: "不是只靠静态推理宣称成功，而是通过 build、lint 或测试来确认结果。",
+    title: "验证为尊",
+    copy: "摒弃空谈。以严苛的编译构筑、代码验证机制，检验每一个细微改动。",
   },
   {
-    title: "可读交付",
-    copy: "清楚说明改了什么、为什么改、改动落在 repo 哪些位置，不靠空话和模糊表述填充。",
+    title: "极净交付",
+    copy: "直奔主题。删减冗杂，明确每次改动的核心依据，代码交接清晰透明。",
   },
 ];
 
 const signalStats = [
-  { value: "95%", label: "更少投机式代码返工" },
-  { value: "1 loop", label: "从上下文到 patch 再到验证" },
-  { value: "0 fluff", label: "状态更新和交付说明不注水" },
-  { value: "24/7", label: "随时可进入 repo 迭代" },
+  { value: "95%", label: "削减无效返工率" },
+  { value: "1 loop", label: "交付验收一气呵成" },
+  { value: "0 fluff", label: "剔除所有注水言辞" },
+  { value: "24/7", label: "随叫随到的代码引擎" },
 ];
 
 const testimonials = [
   {
     quote:
-      "Codex 处理 repo 的方式很像一个中途加入项目的资深工程师。它先读上下文，只改真正重要的部分，再用真实 build 证明补丁有效。",
+      "它对待庞大项目的严谨方式，像极了一位身经百战的灵魂工程师。它不仅阅读前因后果，更靠着真实跑通的构建证明结果。",
     name: "Lin",
     role: "Platform Engineer",
   },
   {
     quote:
-      "差异不只是代码更好，而是整体执行纪律更强：更少假设、更清晰的取舍，以及更干净的收尾。",
+      "它带给团队的不仅是高能效的代码输出，更是一种惊艳的执行纪律：不越界、不盲猜，收尾干脆利落。",
     name: "Mara",
     role: "Product Lead",
   },
   {
     quote:
-      "它不像 autocomplete，更像是在和一个同时尊重 codebase 和交付节奏的人结对开发。",
+      "它不只是个自动补全机器，更是个通宵达旦、敬畏代码并专注交付全流程的强悍搭档。",
     name: "Evan",
     role: "Founder",
   },
@@ -199,41 +199,22 @@ export const CodexShowcase = () => {
       <div className="codex-aurora codex-aurora-left" aria-hidden="true" />
       <div className="codex-aurora codex-aurora-right" aria-hidden="true" />
 
-      <header className="topbar" data-reveal>
-        <a className="brand-mark liquid-glass" href="#hero" aria-label="Codex 首页">
-          <span className="brand-core">C</span>
-          <span className="brand-text">
-            <strong>Codex</strong>
-            <span>engineering agent</span>
-          </span>
-        </a>
 
-        <nav className="topbar-nav liquid-glass" aria-label="主导航">
-          {navItems.map((item) => (
-            <a key={item.href} href={item.href}>
-              {item.label}
-            </a>
-          ))}
-          <a className="nav-cta" href="#contact">
-            开始构建
-          </a>
-        </nav>
-      </header>
 
       <main className="page-shell">
         <section className="hero-section" id="hero">
           <div className="hero-copy" data-reveal>
             <span className="section-pill liquid-glass">
               <span className="pill-tag">New</span>
-              介绍 Codex engineering workflow
+              全新 Codex 研发范式。
             </span>
-            <p className="eyebrow">Agentic software delivery</p>
+            <p className="eyebrow">新一代软件智能交付</p>
             <h1 className="hero-title">
-              会读、会想、会改、会证明结果的 coding agent。
+              读懂逻辑，精准重构。<br />每行代码，自带验证。
             </h1>
             <p className="hero-body">
-              Codex 面向真实工程工作而设计：检查 repo、理解约束、做精确修改、验证结果，
-              最后交回一个可落地的答案，而不是一份带猜测成分的草稿。
+              为应对硬核工程挑战而生。它长驱直入代码深水区，精准捕捉逻辑锚点。
+              它交付的绝不只是几行补丁，更是经受严苛编译自证的完美工程闭环。
             </p>
             <div className="hero-actions">
               <a className="primary-button liquid-glass-strong" href="#workflow">
@@ -257,10 +238,10 @@ export const CodexShowcase = () => {
             <div className="panel-orbit" aria-hidden="true">
               <div className="panel-orbit-core" />
             </div>
-            <div className="panel-label">当前会话</div>
+            <div className="panel-label">实时运转。</div>
             <h2>Codex Runtime</h2>
             <p>
-              一个面向深度 repo 工作的纪律化闭环，兼顾高上下文推理和工具驱动执行。
+              为巨型代码库量身打造的执行引擎。将深度上下文与原生工具链无缝融合，稳健运转。
             </p>
             <div className="runtime-rail">
               <span>Inspect</span>
@@ -269,16 +250,16 @@ export const CodexShowcase = () => {
             </div>
             <div className="runtime-list">
               <div>
-                <strong>扫描 workspace</strong>
-                <span>读取当前文件和周边架构关系</span>
+                <strong>全域扫描</strong>
+                <span>洞悉当前逻辑与全局依赖，建立全方位的感知。</span>
               </div>
               <div>
-                <strong>定点修改</strong>
-                <span>用对 repo 更安全的方式应用最小 patch</span>
+                <strong>精准定点</strong>
+                <span>以极度克制、安全的手法，完成细粒度的代码更迭。</span>
               </div>
               <div>
-                <strong>结果校验</strong>
-                <span>通过 build 或测试确认 patch 站得住</span>
+                <strong>闭环验证</strong>
+                <span>编译、测试多管齐下，确保重构结果稳如磐石。</span>
               </div>
             </div>
           </div>
@@ -295,11 +276,11 @@ export const CodexShowcase = () => {
 
         <section className="section-block" id="workflow">
           <div className="section-heading" data-reveal>
-            <span className="section-pill liquid-glass">流程</span>
+            <span className="section-pill liquid-glass">闭环生态</span>
             <p className="eyebrow">How it works</p>
-            <h2>你给目标，Codex 负责把闭环补齐。</h2>
+            <h2>指出目标，其余交给我们。</h2>
             <p>
-              这不只是模型输出，而是一套内建上下文收集、执行和验证能力的真实交付循环。
+              远不止于代码补全。这套拥有全局视野与原生编译能力的进化版智能核心，正重新制定交付的标尺。
             </p>
           </div>
 
@@ -342,11 +323,11 @@ export const CodexShowcase = () => {
 
         <section className="section-block" id="signals">
           <div className="section-heading" data-reveal>
-            <span className="section-pill liquid-glass">信号</span>
+            <span className="section-pill liquid-glass">卓绝表现</span>
             <p className="eyebrow">Why teams use it</p>
-            <h2>高能动性执行，不以低纪律副作用为代价。</h2>
+            <h2>超凡执行力，毫不妥协的严明纪律。</h2>
             <p>
-              只有快还不够。系统还必须在真实交付压力下保持可理解、理解 repo，并且能够被机械性验证。
+              唯快不破，更需稳如泰山。在交付的重压下，每一处重构都保持绝对清晰、高度透彻，并完全顺从机器的无情验证。
             </p>
           </div>
 
@@ -374,11 +355,11 @@ export const CodexShowcase = () => {
 
         <section className="section-block" id="testimonials">
           <div className="section-heading" data-reveal>
-            <span className="section-pill liquid-glass">评价</span>
+            <span className="section-pill liquid-glass">口碑</span>
             <p className="eyebrow">What teams notice</p>
-            <h2>少一点表演，多一点工程信号。</h2>
+            <h2>褪去浮华，回归纯粹工程实力。</h2>
             <p>
-              价值不只在 patch 本身，也在 patch 周围的执行姿态：假设更明确、影响面更小、交接更干净。
+              真正震撼人心的不是花哨补丁，而是那份冷静：干脆、克制、一击即中。
             </p>
           </div>
 
@@ -396,10 +377,10 @@ export const CodexShowcase = () => {
         <section className="footer-cta" id="contact" data-reveal>
           <div className="footer-card liquid-glass-strong">
             <span className="section-pill liquid-glass">从这里开始</span>
-            <h2>下一次稳定交付，应该从上下文开始，而不是从猜开始。</h2>
+            <h2>你的卓绝表现，理应因洞察而生，绝非全靠猜测。</h2>
             <p>
-              当你需要一个像工程师一样工作的 coding agent 时，就用 Codex：立足 repo、
-              沟通克制，并对 build 结果负责。
+              当你想要一位对架构抱有敬畏之心、对编译闭环苛求至极的全系搭档，
+              Codex 已在此就位。
             </p>
             <div className="hero-actions">
               <a className="primary-button liquid-glass-strong" href="#hero">

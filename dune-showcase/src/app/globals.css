@@ -117,7 +117,7 @@ select {
   z-index: 1;
   width: min(1180px, calc(100vw - 48px));
   margin: 0 auto;
-  padding: 118px 0 88px;
+  padding: 42px 0 88px;
 }
 
 .topbar {
@@ -255,10 +255,16 @@ select {
   transform: translateY(-1px);
 }
 
-.nav-cta {
+.topbar-nav a.nav-cta {
   background: #f4f7fb;
   color: #08090b;
   font-weight: 600;
+}
+
+.topbar-nav a.nav-cta:hover,
+.topbar-nav a.nav-cta:focus-visible {
+  background: #e2e8f0;
+  color: #08090b;
 }
 
 .hero-section {
@@ -267,7 +273,7 @@ select {
   grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
   gap: 40px;
   align-items: center;
-  padding: 72px 0 46px;
+  padding: 32px 0 46px;
 }
 
 .hero-copy,
@@ -316,17 +322,17 @@ select {
 .story-copy h2,
 .footer-card h2,
 .hero-panel h2 {
-  font-family: var(--font-heading), "Times New Roman", serif;
-  font-style: italic;
-  font-weight: 400;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
+  font-family: var(--font-heading), "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
 .hero-title {
-  font-size: clamp(3.9rem, 8vw, 7rem);
-  max-width: 10ch;
+  font-size: clamp(2.8rem, 5vw, 4rem);
+  max-width: 800px;
 }
 
 .hero-body,
@@ -517,8 +523,9 @@ select {
   justify-content: center;
   gap: 34px;
   color: rgba(255, 255, 255, 0.78);
-  font-family: var(--font-heading), serif;
-  font-style: italic;
+  font-family: var(--font-heading), "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-style: normal;
+  font-weight: 600;
   font-size: clamp(1.6rem, 3vw, 2.6rem);
 }
 
@@ -680,10 +687,11 @@ select {
 
 .stats-shell strong {
   display: block;
-  font-family: var(--font-heading), serif;
-  font-style: italic;
+  font-family: var(--font-heading), "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-style: normal;
+  font-weight: 600;
   font-size: clamp(2.4rem, 4vw, 4.2rem);
-  line-height: 0.95;
+  line-height: 1.1;
 }
 
 .stats-shell span {
