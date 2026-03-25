@@ -453,10 +453,8 @@
          * =========================================
          */
         const $ = id => document.getElementById(id);
-        const $$ = sel => document.querySelectorAll(sel);
         const lerp = (start, end, t) => start * (1 - t) + end * t;
         const rnd = (min, max) => Math.random() * (max - min) + min;
-        const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
         const STATE = {
             weather: 'sunny',
@@ -465,10 +463,9 @@
             hasInteracted: false,
             targetTemp: 26,
             currTemp: 26,
-            mouse: { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 }, // 归一化鼠标坐标
+            mouse: { x: 0.5, y: 0.5 }, // 归一化鼠标坐标
             isMouseDown: false, // 鼠标是否按下 (雪天减速用)
-            time: 0, // 全局时间
-            buttonOffset: 0 // 按钮滑动偏移 (0-65px)
+            time: 0 // 全局时间
         };
 
         /**

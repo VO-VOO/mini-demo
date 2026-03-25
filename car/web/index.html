@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ESP32 Car Control</title>
+  <style>
+    :root {
+      --bg: #f2f5f8;
+      --panel: #ffffff;
+      --text: #1c2430;
+      --muted: #5f6d7e;
+      --accent: #0f8f6f;
+      --accent-press: #0a7258;
+      --border: #dbe3ea;
+      --danger: #b81d3f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 10%, #ffffff 0%, #f2f5f8 55%),
+        linear-gradient(145deg, #eef3f8, #f9fbfd);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .card {
+      width: min(560px, 96vw);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 16px 50px rgba(12, 27, 43, 0.12);
+      padding: 18px;
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 24px;
+      letter-spacing: 0.5px;
+    }
+    .sub {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .status {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: #f7fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+    .status div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      background: var(--accent);
+      color: #fff;
+      min-height: 56px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      box-shadow: 0 8px 20px rgba(15, 143, 111, 0.3);
+      transition: transform 80ms ease, background 80ms ease;
+    }
+    button:active,
+    button.pressed {
+      transform: translateY(2px);
+      background: var(--accent-press);
+    }
+    .stop {
+      background: var(--danger);
+      box-shadow: 0 8px 20px rgba(184, 29, 63, 0.3);
+    }
+    .spacer { visibility: hidden; }
+    .hint {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>ESP32 Car Control</h1>
+    <p class="sub">Keyboard: W/A/S/D, keyup auto-stop, touch buttons supported.</p>
+    <section class="status">
+      <div>State: <strong id="state">-</strong></div>
+      <div>Last cmd: <strong id="lastCmd">-</strong></div>
+      <div>Uptime: <strong id="uptime">-</strong></div>
+      <div>Last update: <strong id="updatedAt">-</strong></div>
+    </section>
+    <section class="pad">
+      <div class="spacer">.</div>
+      <button data-cmd="forward" id="btn-forward">W / Forward</button>
+      <div class="spacer">.</div>
+      <button data-cmd="left" id="btn-left">A / Left</button>
+      <button data-cmd="stop" class="stop" id="btn-stop">Stop</button>
+      <button data-cmd="right" id="btn-right">D / Right</button>
+      <div class="spacer">.</div>
+      <button data-cmd="back" id="btn-back">S / Back</button>
+      <div class="spacer">.</div>
+    </section>
+    <p class="hint">Connect to <code>ESP32-CAR</code>, then open <code>http://192.168.4.1/</code>. Poll interval: 300ms.</p>
+  </main>
+
+  <script>
+    const STATE_POLL_MS = 300;
+    const KEY_MAP = { w: "forward", a: "left", s: "back", d: "right" };
+    const stateEl = document.getElementById("state");
+    const lastCmdEl = document.getElementById("lastCmd");
+    const uptimeEl = document.getElementById("uptime");
+    const updatedAtEl = document.getElementById("updatedAt");
+
+    let activeKey = null;
+    let lastSent = { cmd: "", ts: 0 };
+
+    function nowMs() {
+      return Date.now();
+    }
+
+    async function sendCommand(cmd, force = false) {
+      const now = nowMs();
+      if (!force && cmd === lastSent.cmd && now - lastSent.ts < 100) {
+        return;
+      }
+      lastSent = { cmd, ts: now };
+      try {
+        await fetch(`/cmd?d=${encodeURIComponent(cmd)}`, { method: "GET", cache: "no-store" });
+      } catch (err) {
+        updatedAtEl.textContent = `cmd error: ${String(err)}`;
+      }
+    }
+
+    function renderState(data) {
+      stateEl.textContent = data.state || "-";
+      lastCmdEl.textContent = data.last_cmd || "-";
+      uptimeEl.textContent = typeof data.uptime_ms === "number" ? `${data.uptime_ms} ms` : "-";
+      updatedAtEl.textContent = new Date().toLocaleTimeString();
+    }
+
+    async function pollState() {
+      try {
+        const res = await fetch("/state", { cache: "no-store" });
+        if (!res.ok) {
+          return;
+        }
+        const data = await res.json();
+        renderState(data);
+      } catch (err) {
+        updatedAtEl.textContent = `poll error: ${String(err)}`;
+      }
+    }
+
+    function setButtonPressed(cmd, on) {
+      const btn = document.querySelector(`button[data-cmd="${cmd}"]`);
+      if (!btn) {
+        return;
+      }
+      btn.classList.toggle("pressed", on);
+    }
+
+    function bindButton(button) {
+      const cmd = button.dataset.cmd;
+      const start = () => {
+        setButtonPressed(cmd, true);
+        sendCommand(cmd, cmd === "stop");
+      };
+      const end = () => {
+        setButtonPressed(cmd, false);
+        sendCommand("stop", true);
+      };
+
+      button.addEventListener("mousedown", start);
+      button.addEventListener("mouseup", end);
+      button.addEventListener("mouseleave", end);
+      button.addEventListener("touchstart", (e) => { e.preventDefault(); start(); }, { passive: false });
+      button.addEventListener("touchend", (e) => { e.preventDefault(); end(); }, { passive: false });
+      button.addEventListener("touchcancel", (e) => { e.preventDefault(); end(); }, { passive: false });
+    }
+
+    document.querySelectorAll("button[data-cmd]").forEach(bindButton);
+
+    window.addEventListener("keydown", (event) => {
+      const key = event.key.toLowerCase();
+      const cmd = KEY_MAP[key];
+      if (!cmd) {
+        return;
+      }
+      event.preventDefault();
+      if (activeKey === key && event.repeat) {
+        return;
+      }
+      activeKey = key;
+      setButtonPressed(cmd, true);
+      sendCommand(cmd);
+    });
+
+    window.addEventListener("keyup", (event) => {
+      const key = event.key.toLowerCase();
+      const cmd = KEY_MAP[key];
+      if (!cmd) {
+        return;
+      }
+      event.preventDefault();
+      setButtonPressed(cmd, false);
+      if (activeKey === key) {
+        activeKey = null;
+      }
+      sendCommand("stop", true);
+    });
+
+    setInterval(pollState, STATE_POLL_MS);
+    pollState();
+  </script>
+</body>
+</html>

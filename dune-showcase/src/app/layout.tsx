@@ -1,22 +1,23 @@
 import type { Metadata } from "next";
-import { Cinzel, Space_Grotesk } from "next/font/google";
+import { Barlow, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 
-const cinzel = Cinzel({
-  variable: "--font-title",
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-heading",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: "400",
+  style: ["italic"],
 });
 
-const spaceGrotesk = Space_Grotesk({
+const barlow = Barlow({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
 });
 
 export const metadata: Metadata = {
-  title: "Dune | 沙丘",
-  description: "以沉浸式交互展示《沙丘》的世界观与主题。",
+  title: "Codex | 工程代理",
+  description: "一个以玻璃拟态风格展示 Codex 的中文 landing page，强调 repo-aware 的工程执行能力。",
 };
 
 export default function RootLayout({
@@ -27,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body
-        className={`${cinzel.variable} ${spaceGrotesk.variable}`}
+        className={`${instrumentSerif.variable} ${barlow.variable}`}
         suppressHydrationWarning
       >
         {children}

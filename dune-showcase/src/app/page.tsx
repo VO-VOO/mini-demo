@@ -1,5 +1,5 @@
-import { DuneShowcase } from "@/components/dune-showcase";
+import { CodexShowcase } from "@/components/codex-showcase";
 
 export default function Home() {
-  return <DuneShowcase />;
+  return <CodexShowcase />;
 }

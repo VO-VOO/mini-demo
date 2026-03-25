@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Car Keyboard Simulator</title>
+  <style>
+    :root {
+      --bg-a: #f4f7fb;
+      --bg-b: #dfe9f7;
+      --panel: #ffffff;
+      --text: #1e2a3a;
+      --muted: #627286;
+      --line: #d6e0ec;
+      --ok: #188d66;
+      --ok-press: #11674b;
+      --warn: #c1344f;
+      --chip: #edf3fa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "PingFang SC", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 80% 10%, #ffffff 0%, var(--bg-a) 45%),
+        linear-gradient(150deg, var(--bg-a), var(--bg-b));
+      min-height: 100vh;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .wrap {
+      width: min(980px, 98vw);
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 14px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 20px 44px rgba(17, 35, 57, 0.12);
+      padding: 16px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.3px;
+    }
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .stats {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fafcff;
+    }
+    .stat .k {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .stat .v {
+      font-weight: 700;
+      font-size: 16px;
+      word-break: break-word;
+    }
+    .kbd {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(90px, 1fr));
+      gap: 10px;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .key, .ctl {
+      border: none;
+      border-radius: 12px;
+      min-height: 62px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      background: var(--ok);
+      box-shadow: 0 9px 20px rgba(24, 141, 102, 0.27);
+      transition: transform 80ms ease, background 80ms ease;
+      cursor: pointer;
+    }
+    .key:active, .key.pressed, .ctl:active {
+      transform: translateY(2px);
+      background: var(--ok-press);
+    }
+    .stop {
+      background: var(--warn);
+      box-shadow: 0 9px 20px rgba(193, 52, 79, 0.27);
+    }
+    .ghost { visibility: hidden; }
+    .controls {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ctl {
+      min-height: 42px;
+      padding: 0 14px;
+      font-size: 13px;
+      border-radius: 999px;
+      background: #3d6b9e;
+      box-shadow: 0 8px 18px rgba(38, 64, 97, 0.2);
+    }
+    .panel-title {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .chip {
+      background: var(--chip);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      color: #30485f;
+    }
+    .log {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0f1f33;
+      color: #d7e5f4;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      padding: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      max-height: 430px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .help {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    @media (max-width: 900px) {
+      .wrap { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="card">
+      <h1>小车键盘模拟器</h1>
+      <p class="sub">本页面完全本地运行，无需 ESP32。按 W/A/S/D 控制，松键自动 Stop。</p>
+
+      <div class="stats">
+        <div class="stat"><div class="k">当前动作</div><div class="v" id="state">stop</div></div>
+        <div class="stat"><div class="k">上次命令</div><div class="v" id="lastCmd">stop</div></div>
+        <div class="stat"><div class="k">运行时长</div><div class="v" id="uptime">0 ms</div></div>
+        <div class="stat"><div class="k">最后事件</div><div class="v" id="lastAt">-</div></div>
+      </div>
+
+      <div class="kbd" aria-label="control pad">
+        <div class="ghost">.</div>
+        <button class="key" data-cmd="forward">W / 前进</button>
+        <div class="ghost">.</div>
+        <button class="key" data-cmd="left">A / 左转</button>
+        <button class="key stop" data-cmd="stop">Stop</button>
+        <button class="key" data-cmd="right">D / 右转</button>
+        <div class="ghost">.</div>
+        <button class="key" data-cmd="back">S / 后退</button>
+        <div class="ghost">.</div>
+      </div>
+
+      <div class="controls">
+        <button class="ctl" id="btn-clear">清空日志</button>
+        <button class="ctl" id="btn-copy">复制日志</button>
+        <button class="ctl" id="btn-reset">重置状态</button>
+      </div>
+
+      <p class="help">提示：支持鼠标/触屏按钮测试；浏览器失焦（切标签/最小化）会自动发送 stop，防止“卡油门”。</p>
+    </section>
+
+    <section class="card">
+      <h2 class="panel-title">模拟遥测</h2>
+      <div class="chips">
+        <span class="chip">去抖: 100ms</span>
+        <span class="chip">keyup 自动 stop</span>
+        <span class="chip">支持按钮按压</span>
+        <span class="chip">本地无网络依赖</span>
+      </div>
+      <div class="log" id="log"></div>
+    </section>
+  </div>
+
+  <script>
+    const VALID = ["forward", "back", "left", "right", "stop"];
+    const KEY_MAP = { w: "forward", a: "left", s: "back", d: "right" };
+
+    class CarSimulator {
+      constructor(debounceMs) {
+        this.debounceMs = debounceMs;
+        this.startedAt = Date.now();
+        this.lastCmdAt = 0;
+        this.state = "stop";
+        this.lastCmd = "stop";
+      }
+
+      getState() {
+        return {
+          state: this.state,
+          last_cmd: this.lastCmd,
+          uptime_ms: Date.now() - this.startedAt,
+          last_cmd_ms: this.lastCmdAt
+        };
+      }
+
+      setCommand(cmd, force) {
+        if (!VALID.includes(cmd)) {
+          throw new Error("invalid_command");
+        }
+        const now = Date.now();
+        if (!force && cmd === this.state && now - this.lastCmdAt < this.debounceMs) {
+          return this.getState();
+        }
+        this.state = cmd;
+        this.lastCmd = cmd;
+        this.lastCmdAt = now;
+        return this.getState();
+      }
+    }
+
+    const sim = new CarSimulator(100);
+    const ui = {
+      state: document.getElementById("state"),
+      lastCmd: document.getElementById("lastCmd"),
+      uptime: document.getElementById("uptime"),
+      lastAt: document.getElementById("lastAt"),
+      log: document.getElementById("log")
+    };
+
+    let activeKey = null;
+    const logLines = [];
+
+    function fmtTime(ts) {
+      return new Date(ts).toLocaleTimeString();
+    }
+
+    function pushLog(line) {
+      logLines.unshift(line);
+      while (logLines.length > 220) {
+        logLines.pop();
+      }
+      ui.log.textContent = logLines.join("\n");
+    }
+
+    function render(state) {
+      ui.state.textContent = state.state;
+      ui.lastCmd.textContent = state.last_cmd;
+      ui.uptime.textContent = `${state.uptime_ms} ms`;
+      ui.lastAt.textContent = fmtTime(Date.now());
+    }
+
+    function setPressed(cmd, on) {
+      const btn = document.querySelector(`button[data-cmd="${cmd}"]`);
+      if (!btn) {
+        return;
+      }
+      btn.classList.toggle("pressed", on);
+    }
+
+    function send(cmd, source, force = false) {
+      try {
+        const state = sim.setCommand(cmd, force);
+        render(state);
+        pushLog(`[${fmtTime(Date.now())}] ${source.padEnd(8)} -> ${cmd}`);
+      } catch (err) {
+        pushLog(`[${fmtTime(Date.now())}] ERROR    -> ${String(err)}`);
+      }
+    }
+
+    function onPress(cmd, source) {
+      setPressed(cmd, true);
+      send(cmd, source, cmd === "stop");
+    }
+
+    function onRelease(cmd, source) {
+      setPressed(cmd, false);
+      send("stop", `${source}-up`, true);
+    }
+
+    function bindButton(button) {
+      const cmd = button.dataset.cmd;
+      button.addEventListener("mousedown", () => onPress(cmd, "mouse"));
+      button.addEventListener("mouseup", () => onRelease(cmd, "mouse"));
+      button.addEventListener("mouseleave", () => onRelease(cmd, "mouse"));
+      button.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        onPress(cmd, "touch");
+      }, { passive: false });
+      button.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        onRelease(cmd, "touch");
+      }, { passive: false });
+      button.addEventListener("touchcancel", (e) => {
+        e.preventDefault();
+        onRelease(cmd, "touch");
+      }, { passive: false });
+    }
+
+    document.querySelectorAll("button[data-cmd]").forEach(bindButton);
+
+    window.addEventListener("keydown", (event) => {
+      const key = event.key.toLowerCase();
+      const cmd = KEY_MAP[key];
+      if (!cmd) {
+        return;
+      }
+      event.preventDefault();
+      if (event.repeat && activeKey === key) {
+        return;
+      }
+      activeKey = key;
+      onPress(cmd, "keyboard");
+    });
+
+    window.addEventListener("keyup", (event) => {
+      const key = event.key.toLowerCase();
+      const cmd = KEY_MAP[key];
+      if (!cmd) {
+        return;
+      }
+      event.preventDefault();
+      if (activeKey === key) {
+        activeKey = null;
+      }
+      onRelease(cmd, "keyboard");
+    });
+
+    window.addEventListener("blur", () => {
+      activeKey = null;
+      document.querySelectorAll("button[data-cmd]").forEach((btn) => {
+        btn.classList.remove("pressed");
+      });
+      send("stop", "blur", true);
+    });
+
+    document.getElementById("btn-clear").addEventListener("click", () => {
+      logLines.length = 0;
+      ui.log.textContent = "";
+    });
+
+    document.getElementById("btn-copy").addEventListener("click", async () => {
+      const text = logLines.join("\n");
+      try {
+        await navigator.clipboard.writeText(text);
+        pushLog(`[${fmtTime(Date.now())}] system   -> log copied`);
+      } catch (_err) {
+        pushLog(`[${fmtTime(Date.now())}] system   -> copy failed`);
+      }
+    });
+
+    document.getElementById("btn-reset").addEventListener("click", () => {
+      activeKey = null;
+      sim.state = "stop";
+      sim.lastCmd = "stop";
+      sim.lastCmdAt = Date.now();
+      render(sim.getState());
+      pushLog(`[${fmtTime(Date.now())}] system   -> reset`);
+    });
+
+    setInterval(() => render(sim.getState()), 200);
+    render(sim.getState());
+    pushLog(`[${fmtTime(Date.now())}] system   -> simulator ready`);
+  </script>
+</body>
+</html>

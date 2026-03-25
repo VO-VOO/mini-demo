@@ -1,0 +1,190 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "Codex 首页" [ref=e4] [cursor=pointer]:
+        - /url: "#hero"
+        - generic [ref=e5]: C
+        - generic [ref=e6]:
+          - strong [ref=e7]: Codex
+          - generic [ref=e8]: engineering agent
+      - navigation "主导航" [ref=e9]:
+        - link "能力" [ref=e10] [cursor=pointer]:
+          - /url: "#capabilities"
+        - link "流程" [ref=e11] [cursor=pointer]:
+          - /url: "#workflow"
+        - link "信号" [ref=e12] [cursor=pointer]:
+          - /url: "#signals"
+        - link "评价" [ref=e13] [cursor=pointer]:
+          - /url: "#testimonials"
+        - link "联系" [ref=e14] [cursor=pointer]:
+          - /url: "#contact"
+        - link "开始构建" [ref=e15] [cursor=pointer]:
+          - /url: "#contact"
+    - main [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - generic [ref=e20]: New
+            - text: 介绍 Codex engineering workflow
+          - paragraph [ref=e21]: Agentic software delivery
+          - heading "会读、会想、会改、会证明结果的 coding agent。" [level=1] [ref=e22]
+          - paragraph [ref=e23]: Codex 面向真实工程工作而设计：检查 repo、理解约束、做精确修改、验证结果， 最后交回一个可落地的答案，而不是一份带猜测成分的草稿。
+          - generic [ref=e24]:
+            - link "查看流程" [ref=e25] [cursor=pointer]:
+              - /url: "#workflow"
+            - link "查看能力" [ref=e26] [cursor=pointer]:
+              - /url: "#capabilities"
+          - generic [ref=e27]:
+            - article [ref=e28]:
+              - generic [ref=e29]: 协同层级
+              - strong [ref=e30]: 4-layer reasoning
+            - article [ref=e31]:
+              - generic [ref=e32]: 首个补丁时间
+              - strong [ref=e33]: < 10 分钟
+            - article [ref=e34]:
+              - generic [ref=e35]: 接入界面
+              - strong [ref=e36]: CLI · Web · API
+        - generic [ref=e37]:
+          - generic [ref=e40]: 当前会话
+          - heading "Codex Runtime" [level=2] [ref=e41]
+          - paragraph [ref=e42]: 一个面向深度 repo 工作的纪律化闭环，兼顾高上下文推理和工具驱动执行。
+          - generic [ref=e43]:
+            - generic [ref=e44]: Inspect
+            - generic [ref=e45]: Patch
+            - generic [ref=e46]: Verify
+          - generic [ref=e47]:
+            - generic [ref=e48]:
+              - strong [ref=e49]: 扫描 workspace
+              - generic [ref=e50]: 读取当前文件和周边架构关系
+            - generic [ref=e51]:
+              - strong [ref=e52]: 定点修改
+              - generic [ref=e53]: 用对 repo 更安全的方式应用最小 patch
+            - generic [ref=e54]:
+              - strong [ref=e55]: 结果校验
+              - generic [ref=e56]: 通过 build 或测试确认 patch 站得住
+      - generic [ref=e57]:
+        - generic [ref=e58]: 覆盖现代开发者常用工作界面
+        - generic [ref=e59]:
+          - generic [ref=e60]: OpenAI
+          - generic [ref=e61]: GitHub
+          - generic [ref=e62]: Notion
+          - generic [ref=e63]: Canva
+          - generic [ref=e64]: Playwright
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - generic [ref=e67]: 流程
+          - paragraph [ref=e68]: How it works
+          - heading "你给目标，Codex 负责把闭环补齐。" [level=2] [ref=e69]
+          - paragraph [ref=e70]: 这不只是模型输出，而是一套内建上下文收集、执行和验证能力的真实交付循环。
+        - generic [ref=e71]:
+          - article [ref=e72]:
+            - generic [ref=e73]: "01"
+            - heading "先读 codebase" [level=3] [ref=e74]
+            - paragraph [ref=e75]: Codex 先检查真实项目状态，再开始推理与修改，而不是先套一个通用模板上去。
+          - article [ref=e76]:
+            - generic [ref=e77]: "02"
+            - heading "跨工具推理" [level=3] [ref=e78]
+            - paragraph [ref=e79]: Terminal 命令、代码补丁、浏览器自动化、MCP apps 和 web 验证会被组合进同一个工作闭环。
+          - article [ref=e80]:
+            - generic [ref=e81]: "03"
+            - heading "带着验证交付" [level=3] [ref=e82]
+            - paragraph [ref=e83]: 它不会停在分析阶段，而是继续编辑、构建、测试，并用明确的文件引用交代最终结果。
+      - generic [ref=e84]:
+        - article [ref=e85]:
+          - generic [ref=e86]:
+            - generic [ref=e87]: 上下文引擎
+            - heading "一个从真实状态出发，而不是从想象状态出发的 coding agent。" [level=2] [ref=e88]
+            - paragraph [ref=e89]: Codex 会先读取 workspace，尊重现有架构，留意脏文件，并在不把 repo 压平成样板代码的前提下完成集成式修改。
+            - list [ref=e90]:
+              - listitem [ref=e91]: 先读后写
+              - listitem [ref=e92]: 保留既有模式
+              - listitem [ref=e93]: 避免破坏性 git 操作
+          - generic [ref=e97]:
+            - generic [ref=e98]: $ scan workspace
+            - generic [ref=e99]: $ patch target module
+            - generic [ref=e100]: $ run build
+        - article [ref=e101]:
+          - generic [ref=e102]:
+            - generic [ref=e103]: 执行纪律
+            - heading "只有经得住 build 检验的推理，才算真正有用。" [level=2] [ref=e104]
+            - paragraph [ref=e105]: 从生成 patch 到完成验证，Codex 会一直卡住关键路径推进，并在可能的情况下用编译级证据把闭环收住。
+            - list [ref=e106]:
+              - listitem [ref=e107]: 运行真实命令
+              - listitem [ref=e108]: 持续同步进展
+              - listitem [ref=e109]: 阻塞点直接暴露，不掩盖
+          - generic [ref=e113]:
+            - generic [ref=e114]: $ scan workspace
+            - generic [ref=e115]: $ patch target module
+            - generic [ref=e116]: $ run build
+      - generic [ref=e117]:
+        - generic [ref=e118]:
+          - generic [ref=e119]: 信号
+          - paragraph [ref=e120]: Why teams use it
+          - heading "高能动性执行，不以低纪律副作用为代价。" [level=2] [ref=e121]
+          - paragraph [ref=e122]: 只有快还不够。系统还必须在真实交付压力下保持可理解、理解 repo，并且能够被机械性验证。
+        - generic [ref=e123]:
+          - article [ref=e124]:
+            - heading "理解 codebase" [level=3] [ref=e126]
+            - paragraph [ref=e127]: 在提出修改前先理解现有文件、命名方式、技术栈约定和本地限制。
+          - article [ref=e128]:
+            - heading "多工具协同" [level=3] [ref=e130]
+            - paragraph [ref=e131]: 把 shell、browser、apps、文档检索和结构化编辑整合进一个连贯的工作会话里。
+          - article [ref=e132]:
+            - heading "验证优先" [level=3] [ref=e134]
+            - paragraph [ref=e135]: 不是只靠静态推理宣称成功，而是通过 build、lint 或测试来确认结果。
+          - article [ref=e136]:
+            - heading "可读交付" [level=3] [ref=e138]
+            - paragraph [ref=e139]: 清楚说明改了什么、为什么改、改动落在 repo 哪些位置，不靠空话和模糊表述填充。
+      - generic [ref=e141]:
+        - article [ref=e142]:
+          - strong [ref=e143]: 95%
+          - generic [ref=e144]: 更少投机式代码返工
+        - article [ref=e145]:
+          - strong [ref=e146]: 1 loop
+          - generic [ref=e147]: 从上下文到 patch 再到验证
+        - article [ref=e148]:
+          - strong [ref=e149]: 0 fluff
+          - generic [ref=e150]: 状态更新和交付说明不注水
+        - article [ref=e151]:
+          - strong [ref=e152]: 24/7
+          - generic [ref=e153]: 随时可进入 repo 迭代
+      - generic [ref=e154]:
+        - generic [ref=e155]:
+          - generic [ref=e156]: 评价
+          - paragraph [ref=e157]: What teams notice
+          - heading "少一点表演，多一点工程信号。" [level=2] [ref=e158]
+          - paragraph [ref=e159]: 价值不只在 patch 本身，也在 patch 周围的执行姿态：假设更明确、影响面更小、交接更干净。
+        - generic [ref=e160]:
+          - article [ref=e161]:
+            - paragraph [ref=e162]: “Codex 处理 repo 的方式很像一个中途加入项目的资深工程师。它先读上下文，只改真正重要的部分，再用真实 build 证明补丁有效。”
+            - strong [ref=e163]: Lin
+            - generic [ref=e164]: Platform Engineer
+          - article [ref=e165]:
+            - paragraph [ref=e166]: “差异不只是代码更好，而是整体执行纪律更强：更少假设、更清晰的取舍，以及更干净的收尾。”
+            - strong [ref=e167]: Mara
+            - generic [ref=e168]: Product Lead
+          - article [ref=e169]:
+            - paragraph [ref=e170]: “它不像 autocomplete，更像是在和一个同时尊重 codebase 和交付节奏的人结对开发。”
+            - strong [ref=e171]: Evan
+            - generic [ref=e172]: Founder
+      - generic [ref=e174]:
+        - generic [ref=e175]: 从这里开始
+        - heading "下一次稳定交付，应该从上下文开始，而不是从猜开始。" [level=2] [ref=e176]
+        - paragraph [ref=e177]: 当你需要一个像工程师一样工作的 coding agent 时，就用 Codex：立足 repo、 沟通克制，并对 build 结果负责。
+        - generic [ref=e178]:
+          - link "预约技术演示" [ref=e179] [cursor=pointer]:
+            - /url: "#hero"
+          - link "回看闭环" [ref=e180] [cursor=pointer]:
+            - /url: "#workflow"
+        - generic [ref=e181]:
+          - generic [ref=e182]: © 2026 Codex
+          - generic [ref=e183]:
+            - link "能力" [ref=e184] [cursor=pointer]:
+              - /url: "#capabilities"
+            - link "信号" [ref=e185] [cursor=pointer]:
+              - /url: "#signals"
+            - link "联系" [ref=e186] [cursor=pointer]:
+              - /url: "#contact"
+  - button "Open Next.js Dev Tools" [ref=e192] [cursor=pointer]:
+    - img [ref=e193]
+  - alert [ref=e196]
